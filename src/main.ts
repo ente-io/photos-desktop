@@ -88,6 +88,10 @@ else {
         }
     });
 
+    process.on("exit",()=>{
+        app.quit()
+    });
+
 }
 
 
