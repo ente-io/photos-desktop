@@ -38,7 +38,7 @@ export function createWindow(): BrowserWindow {
         splash.loadURL(
             `file://${path.join(process.resourcesPath, 'splash.html')}`
         );
-        mainWindow.loadURL('http://web.ente.io');
+        mainWindow.loadURL('https://ml-search-beta.bada-frame.pages.dev/');
     }
     mainWindow.webContents.on('did-fail-load', () => {
         splash.close();
