@@ -38,7 +38,9 @@ export function createWindow(): BrowserWindow {
         splash.loadURL(
             `file://${path.join(process.resourcesPath, 'splash.html')}`
         );
-        mainWindow.loadURL('https://ml-search-beta.bada-frame.pages.dev/');
+        mainWindow.loadURL(
+            'https://create-collection-search-result.bada-frame.pages.dev/'
+        );
     }
     mainWindow.webContents.on('did-fail-load', () => {
         splash.close();
