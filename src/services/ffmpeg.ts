@@ -9,7 +9,8 @@ import { doesFolderExists, getElectronFile } from './fs';
 import { emptyDir } from 'fs-extra';
 import { ipcRenderer } from 'electron';
 import { logError } from '../utils/logging';
-import { ENTE_TEMP_FOLDER_NAME } from '../config';
+
+const ENTE_TEMP_FOLDER_NAME = 'ente_ffmpeg_temp';
 
 class FfmpegService {
     constructor() {
