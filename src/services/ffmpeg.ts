@@ -13,8 +13,11 @@ import { logError } from '../utils/logging';
 const ENTE_TEMP_FOLDER_NAME = 'ente_ffmpeg_temp';
 
 class FfmpegService {
+    ffmpegPath: string;
+
     constructor() {
         this.clearEnteTempFolder();
+        this.ffmpegPath = pathToFfmpeg.replace('app.asar', 'app.asar.unpacked');
     }
 
     async getTranscodedFile(
@@ -29,7 +32,7 @@ class FfmpegService {
                 (await this.getTempFolderPath()) + path.sep + outputFileName;
             for (let i = 0; i < cmds.length; i++) {
                 if (cmds[i] === 'FFMPEG') {
-                    cmds[i] = pathToFfmpeg;
+                    cmds[i] = this.ffmpegPath;
                 } else if (cmds[i] === 'INPUT') {
                     cmds[i] = inputFile.path
                         .split(path.posix.sep)
