@@ -1,108 +1,53 @@
-import { Readable } from 'stream';
-import * as fs from 'promise-fs';
-import * as electron from 'electron';
+import { reloadWindow, sendNotification, showOnTray } from './api/system';
+import {
+    showUploadDirsDialog,
+    showUploadFilesDialog,
+    showUploadZipDialog,
+    getPendingUploads,
+    setToUploadFiles,
+    getElectronFilesFromGoogleZip,
+    setToUploadCollection,
+} from './api/upload';
+import {
+    registerWatcherFunctions,
+    addWatchMapping,
+    removeWatchMapping,
+    updateWatchMappingSyncedFiles,
+    updateWatchMappingIgnoredFiles,
+    getWatchMappings,
+} from './api/watch';
+import { getEncryptionKey, setEncryptionKey } from './api/safeStorage';
+import { clearElectronStore } from './api/electronStore';
+import { openDiskCache, deleteDiskCache } from './api/cache';
+import {
+    checkExistsAndCreateCollectionDir,
+    checkExistsAndRename,
+    saveStreamToDisk,
+    saveFileToDisk,
+    registerResumeExportListener,
+    registerStopExportListener,
+    registerPauseExportListener,
+    registerRetryFailedExportListener,
+    getExportRecord,
+    setExportRecord,
+    exists,
+} from './api/export';
+import { selectRootDirectory } from './api/common';
+import { fixHotReloadNext12 } from './utils/preload';
+import { isFolder, getDirFiles } from './api/fs';
 
-const { ipcRenderer } = electron;
-
-const responseToReadable = (fileStream: any) => {
-    const reader = fileStream.getReader();
-    const rs = new Readable();
-    rs._read = async () => {
-        const result = await reader.read();
-        if (!result.done) {
-            rs.push(Buffer.from(result.value));
-        } else {
-            rs.push(null);
-            return;
-        }
-    };
-    return rs;
-};
-
-const checkExistsAndCreateCollectionDir = async (dirPath: string) => {
-    if (!fs.existsSync(dirPath)) {
-        await fs.mkdir(dirPath);
-    }
-};
-
-const checkExistsAndRename = async (oldDirPath: string, newDirPath: string) => {
-    if (fs.existsSync(oldDirPath)) {
-        await fs.rename(oldDirPath, newDirPath);
-    }
-};
-
-const saveStreamToDisk = (path: string, fileStream: ReadableStream<any>) => {
-    const writeable = fs.createWriteStream(path);
-    const readable = responseToReadable(fileStream);
-    readable.pipe(writeable);
-};
-
-const saveFileToDisk = async (path: string, file: any) => {
-    await fs.writeFile(path, file);
-};
-
-const selectRootDirectory = async () => {
-    try {
-        return await ipcRenderer.sendSync('select-dir');
-    } catch (e) {
-        console.error(e);
-        throw e;
-    }
-};
-
-const sendNotification = (content: string) => {
-    ipcRenderer.send('send-notification', content);
-};
-const showOnTray = (content: string) => {
-    ipcRenderer.send('update-tray', content);
-};
-
-const registerResumeExportListener = (resumeExport: () => void) => {
-    ipcRenderer.removeAllListeners('resume-export');
-    ipcRenderer.on('resume-export', () => resumeExport());
-};
-const registerStopExportListener = (abortExport: () => void) => {
-    ipcRenderer.removeAllListeners('stop-export');
-    ipcRenderer.on('stop-export', () => abortExport());
-};
-
-const registerPauseExportListener = (pauseExport: () => void) => {
-    ipcRenderer.removeAllListeners('pause-export');
-    ipcRenderer.on('pause-export', () => pauseExport());
-};
-
-const registerRetryFailedExportListener = (retryFailedExport: () => void) => {
-    ipcRenderer.removeAllListeners('retry-export');
-    ipcRenderer.on('retry-export', () => retryFailedExport());
-};
-
-const reloadWindow = () => {
-    ipcRenderer.send('reload-window');
-};
-
-const getExportRecord = async (filePath: string) => {
-    try {
-        const filepath = `${filePath}`;
-        const recordFile = await fs.readFile(filepath, 'utf-8');
-        return recordFile;
-    } catch (e) {
-        // ignore exportFile missing
-        console.log(e);
-    }
-};
-
-const setExportRecord = async (filePath: string, data: string) => {
-    const filepath = `${filePath}`;
-    await fs.writeFile(filepath, data);
-};
+fixHotReloadNext12();
 
 const windowObject: any = window;
+
 windowObject['ElectronAPIs'] = {
+    exists,
     checkExistsAndCreateCollectionDir,
     checkExistsAndRename,
     saveStreamToDisk,
     saveFileToDisk,
     selectRootDirectory,
+    clearElectronStore,
     sendNotification,
     showOnTray,
     reloadWindow,
@@ -112,4 +57,23 @@ windowObject['ElectronAPIs'] = {
     registerRetryFailedExportListener,
     getExportRecord,
     setExportRecord,
+    showUploadFilesDialog,
+    showUploadDirsDialog,
+    getPendingUploads,
+    setToUploadFiles,
+    showUploadZipDialog,
+    getElectronFilesFromGoogleZip,
+    setToUploadCollection,
+    getEncryptionKey,
+    setEncryptionKey,
+    openDiskCache,
+    deleteDiskCache,
+    getDirFiles,
+    getWatchMappings,
+    addWatchMapping,
+    removeWatchMapping,
+    registerWatcherFunctions,
+    isFolder,
+    updateWatchMappingSyncedFiles,
+    updateWatchMappingIgnoredFiles,
 };

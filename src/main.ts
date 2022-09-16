@@ -1,21 +1,21 @@
-import {
-    app,
-    BrowserWindow,
-    Menu,
-    Tray,
-    dialog,
-    nativeImage,
-} from 'electron';
-import * as path from 'path';
-import * as isDev from 'electron-is-dev';
-import AppUpdater from './utils/appUpdater';
+import { app, BrowserWindow } from 'electron';
 import { createWindow } from './utils/createWindow';
 import setupIpcComs from './utils/ipcComms';
-import { buildContextMenu, buildMenuBar } from './utils/menuUtil';
-import initSentry from './utils/sentry';
+import { initWatcher } from './services/chokidar';
+import { addAllowOriginHeader } from './utils/cors';
+import {
+    setupTrayItem,
+    handleUpdates,
+    handleDownloads,
+    setupMacWindowOnDockIconClick,
+    setupMainMenu,
+    setupMainHotReload,
+    setupNextElectronServe,
+    enableSharedArrayBufferSupport,
+    handleDockIconHideOnAutoLaunch,
+} from './utils/main';
+import { initSentry } from './services/sentry';
 
-
-let tray: Tray;
 let mainWindow: BrowserWindow;
 
 let appIsQuitting = false;
@@ -24,71 +24,55 @@ let updateIsAvailable = false;
 
 export const isAppQuitting = (): boolean => {
     return appIsQuitting;
-}
+};
+
 export const setIsAppQuitting = (value: boolean): void => {
     appIsQuitting = value;
-}
+};
 
 export const isUpdateAvailable = (): boolean => {
     return updateIsAvailable;
-}
+};
 export const setIsUpdateAvailable = (value: boolean): void => {
     updateIsAvailable = value;
-}
-
-// Disable error dialogs by overriding
-dialog.showErrorBox = function (title, content) {
-    console.log(`${title}\n${content}`);
 };
 
+setupMainHotReload();
+
+setupNextElectronServe();
 
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
     app.quit();
-}
-else {
-
+} else {
+    handleDockIconHideOnAutoLaunch();
+    enableSharedArrayBufferSupport();
     app.on('second-instance', () => {
         // Someone tried to run a second instance, we should focus our window.
         if (mainWindow) {
             mainWindow.show();
             if (mainWindow.isMinimized()) {
-                mainWindow.restore()
+                mainWindow.restore();
             }
-            mainWindow.focus()
+            mainWindow.focus();
         }
-    })
+    });
 
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
-    app.on('ready', () => {
+    app.on('ready', async () => {
+        mainWindow = await createWindow();
+        const tray = setupTrayItem(mainWindow);
+        const watcher = initWatcher(mainWindow);
+        setupMacWindowOnDockIconClick();
         initSentry();
-        setIsUpdateAvailable(false)
-        mainWindow = createWindow();
-        Menu.setApplicationMenu(buildMenuBar())
-
-        app.on('activate', function () {
-            // On macOS it's common to re-create a window in the app when the
-            // dock icon is clicked and there are no other windows open.
-            if (BrowserWindow.getAllWindows().length === 0) createWindow();
-        });
-
-        const trayImgPath = isDev
-            ? 'build/taskbar-icon.png'
-            : path.join(process.resourcesPath, 'taskbar-icon.png');
-        const trayIcon = nativeImage.createFromPath(trayImgPath);
-        tray = new Tray(trayIcon);
-        tray.setToolTip('ente');
-        tray.setContextMenu(buildContextMenu(mainWindow));
-
-        setupIpcComs(tray, mainWindow);
-        if (!isDev) {
-            AppUpdater.checkForUpdate(tray, mainWindow);
-        }
+        setupMainMenu();
+        setupIpcComs(tray, mainWindow, watcher);
+        handleUpdates(mainWindow, tray);
+        handleDownloads(mainWindow);
+        addAllowOriginHeader(mainWindow);
     });
 
+    app.on('before-quit', () => setIsAppQuitting(true));
 }
-
-
-
