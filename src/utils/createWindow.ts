@@ -54,7 +54,7 @@ export async function createWindow(): Promise<BrowserWindow> {
                   `file://${path.join(process.resourcesPath, 'error.html')}`
               );
     });
-    mainWindow.once('ready-to-show', async () => {
+    mainWindow.webContents.on('did-finish-load', async () => {
         splash.destroy();
         if (!wasAutoLaunched) {
             mainWindow.show();
