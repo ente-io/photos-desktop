@@ -2,7 +2,7 @@ import { app, BrowserWindow, nativeImage } from 'electron';
 import * as path from 'path';
 import { isDev } from './common';
 import { isAppQuitting } from '../main';
-import { PROD_HOST_URL } from '../config';
+import { PROD_HOST_URL, WAIT_TIME_FOR_READY_TO_SHOW } from '../config';
 import { isPlatformMac } from './main';
 import { getHideDockIconPreference } from '../services/userPreference';
 import autoLauncher from '../services/autoLauncher';
@@ -73,7 +73,7 @@ export async function createWindow(): Promise<BrowserWindow> {
         } catch (e) {
             // ignore
         }
-    }, 2000);
+    }, WAIT_TIME_FOR_READY_TO_SHOW);
     mainWindow.on('close', function (event) {
         if (!isAppQuitting()) {
             event.preventDefault();
