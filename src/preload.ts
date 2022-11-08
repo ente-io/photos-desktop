@@ -44,6 +44,8 @@ import {
     logToDisk,
     openLogDirectory,
     getSentryUserID,
+    crashRenderer,
+    crashMain,
 } from './api/common';
 import { fixHotReloadNext12 } from './utils/preload';
 import { isFolder, getDirFiles } from './api/fs';
@@ -98,4 +100,6 @@ windowObject['ElectronAPIs'] = {
     updateAndRestart,
     skipAppVersion,
     getSentryUserID,
+    crashRenderer,
+    crashMain,
 };

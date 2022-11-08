@@ -117,4 +117,5 @@ export default function setupIpcComs(
     ipcMain.handle('get-sentry-id', () => {
         return getSentryUserID();
     });
+    ipcMain.handle('crash-main', () => process.crash());
 }
