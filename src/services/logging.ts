@@ -16,3 +16,10 @@ export function logError(error: Error, message: string, info?: string): void {
 export function getSentryUserID(): Promise<string> {
     return ipcRenderer.invoke('get-sentry-id');
 }
+
+export function crashRenderer() {
+    process.crash();
+}
+export function crashMain() {
+    return ipcRenderer.invoke('crash-main');
+}

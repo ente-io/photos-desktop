@@ -13,4 +13,6 @@ export {
     logToDisk,
     openLogDirectory,
     getSentryUserID,
+    crashRenderer,
+    crashMain,
 } from '../services/logging';
