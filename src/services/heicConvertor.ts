@@ -4,7 +4,7 @@ import { existsSync, rmSync } from 'fs';
 import path from 'path';
 import { mkdir, readFile, writeFile } from 'promise-fs';
 import { generateRandomName } from '../utils/common';
-import { logErrorSentry } from './sentry';
+import { logErrorSentry } from '../utils/sentry';
 
 export async function convertHEIC(
     heicFileData: Uint8Array

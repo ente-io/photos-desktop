@@ -7,7 +7,7 @@ import { AppUpdateInfo, GetFeatureFlagResponse } from '../types';
 import { getSkipAppVersion, setSkipAppVersion } from './userPreference';
 import fetch from 'node-fetch';
 import { isPlatformMac } from '../utils/main';
-import { logErrorSentry } from './sentry';
+import { logErrorSentry } from '../utils/sentry';
 
 const FIVE_MIN_IN_MICROSECOND = 5 * 60 * 1000;
 

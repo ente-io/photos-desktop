@@ -14,8 +14,9 @@ import {
     handleDockIconHideOnAutoLaunch,
     handleUpdates,
 } from './utils/main';
-import { initSentry } from './services/sentry';
+import { initSentry } from './utils/sentry';
 import { setupLogging } from './utils/logging';
+import { initCrashPad } from './utils/crashpad';
 
 let mainWindow: BrowserWindow;
 
@@ -66,6 +67,7 @@ if (!gotTheLock) {
     // Some APIs can only be used after this event occurs.
     app.on('ready', async () => {
         initSentry();
+        initCrashPad();
         mainWindow = await createWindow();
         const tray = setupTrayItem(mainWindow);
         const watcher = initWatcher(mainWindow);

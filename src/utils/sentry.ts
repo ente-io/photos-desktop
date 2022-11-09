@@ -1,9 +1,9 @@
 import * as Sentry from '@sentry/electron/dist/main';
-import { makeID } from '../utils/logging';
+import { makeID } from './logging';
 import { keysStore } from '../stores/keys.store';
 import { SENTRY_DSN, RELEASE_VERSION } from '../config';
-import { isDev } from '../utils/common';
-import { logToDisk } from './logging';
+import { isDev } from './common';
+import { logToDisk } from '../services/logging';
 
 const ENV_DEVELOPMENT = 'development';
 
@@ -15,6 +15,7 @@ export function initSentry(): void {
         dsn: SENTRY_DSN,
         release: RELEASE_VERSION,
         environment: isDev ? 'development' : 'production',
+        useSentryMinidumpUploader: false,
     });
 }
 
