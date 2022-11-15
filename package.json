@@ -96,6 +96,7 @@
     "electron-log": "^4.3.5",
     "electron-reload": "^2.0.0-alpha.1",
     "electron-store": "^8.0.1",
+    "electron-typed-ipc": "^0.1.0",
     "electron-updater": "^4.3.8",
     "get-folder-size": "^2.0.1",
     "next-electron-server": "file:./thirdparty/next-electron-server",

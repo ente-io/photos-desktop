@@ -1468,6 +1468,11 @@ electron-store@^8.0.1:
     conf "^10.1.2"
     type-fest "^2.12.2"
 
+electron-typed-ipc@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/electron-typed-ipc/-/electron-typed-ipc-0.1.0.tgz#6c0bb6641e9201cf3bbe56f65979e8b580781ad8"
+  integrity sha512-PidZOE9gJo95ybhmUUdfnSdqughtTNZasL+QlJtzyE0XqDusWJFOFc2tl5IjYGn1bF9pBzAi7TrCD4/esK2LOw==
+
 electron-updater@^4.3.8:
   version "4.6.5"
   resolved "https://registry.yarnpkg.com/electron-updater/-/electron-updater-4.6.5.tgz#e9a75458bbfd6bb41a58a829839e150ad2eb2d3d"
