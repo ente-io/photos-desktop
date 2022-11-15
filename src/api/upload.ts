@@ -2,11 +2,11 @@ import { getElectronFile } from './../services/fs';
 import { uploadStatusStore } from '../stores/upload.store';
 import { ElectronFile, FILE_PATH_TYPE } from '../types';
 import { logError } from '../services/logging';
-import { ipcRenderer } from 'electron';
 import {
     getElectronFilesFromGoogleZip,
     getSavedFilePaths,
 } from '../services/upload';
+import { typedIpcRenderer } from '../types/ipc';
 
 export const getPendingUploads = async () => {
     const filePaths = getSavedFilePaths(FILE_PATH_TYPE.FILES);
@@ -38,7 +38,7 @@ export const getPendingUploads = async () => {
 
 export const showUploadDirsDialog = async () => {
     try {
-        const filePaths: string[] = await ipcRenderer.invoke(
+        const filePaths: string[] = await typedIpcRenderer.invoke(
             'show-upload-dirs-dialog'
         );
         const files = await Promise.all(filePaths.map(getElectronFile));
@@ -50,7 +50,7 @@ export const showUploadDirsDialog = async () => {
 
 export const showUploadFilesDialog = async () => {
     try {
-        const filePaths: string[] = await ipcRenderer.invoke(
+        const filePaths: string[] = await typedIpcRenderer.invoke(
             'show-upload-files-dialog'
         );
         const files = await Promise.all(filePaths.map(getElectronFile));
@@ -62,7 +62,7 @@ export const showUploadFilesDialog = async () => {
 
 export const showUploadZipDialog = async () => {
     try {
-        const filePaths: string[] = await ipcRenderer.invoke(
+        const filePaths: string[] = await typedIpcRenderer.invoke(
             'show-upload-zip-dialog'
         );
         let files: ElectronFile[] = [];

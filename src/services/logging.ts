@@ -1,18 +1,22 @@
 import log from 'electron-log';
-import { ipcRenderer } from 'electron';
+import { typedIpcRenderer } from '../types/ipc';
 
 export function logToDisk(logLine: string) {
     log.info(logLine);
 }
 
 export function openLogDirectory() {
-    ipcRenderer.invoke('open-log-dir');
+    typedIpcRenderer.invoke('get-path', 'logs');
 }
 
-export function logError(error: Error, message: string, info?: string): void {
-    ipcRenderer.invoke('log-error', error, message, info);
+export function logError(
+    error: Error,
+    message: string,
+    info?: Record<any, any>
+): void {
+    typedIpcRenderer.invoke('log-error', error, message, info);
 }
 
 export function getSentryUserID(): Promise<string> {
-    return ipcRenderer.invoke('get-sentry-id');
+    return typedIpcRenderer.invoke('get-sentry-id');
 }

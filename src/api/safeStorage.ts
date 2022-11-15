@@ -1,10 +1,10 @@
-import { ipcRenderer } from 'electron';
 import { safeStorageStore } from '../stores/safeStorage.store';
 import { logError } from '../services/logging';
+import { typedIpcRenderer } from '../types/ipc';
 
 export async function setEncryptionKey(encryptionKey: string) {
     try {
-        const encryptedKey: Buffer = await ipcRenderer.invoke(
+        const encryptedKey: Buffer = await typedIpcRenderer.invoke(
             'safeStorage-encrypt',
             encryptionKey
         );
@@ -20,10 +20,12 @@ export async function getEncryptionKey(): Promise<string> {
     try {
         const b64EncryptedKey = safeStorageStore.get('encryptionKey');
         if (b64EncryptedKey) {
-            const keyBuffer = new Uint8Array(
-                Buffer.from(b64EncryptedKey, 'base64')
+            const keyBuffer = Buffer.from(b64EncryptedKey, 'base64');
+
+            return await typedIpcRenderer.invoke(
+                'safeStorage-decrypt',
+                keyBuffer
             );
-            return await ipcRenderer.invoke('safeStorage-decrypt', keyBuffer);
         }
     } catch (e) {
         logError(e, 'setEncryptionKey failed');

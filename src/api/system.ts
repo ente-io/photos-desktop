@@ -1,29 +1,38 @@
-import { ipcRenderer } from 'electron';
+import { typedIpcRenderer } from '../types/ipc';
 import { AppUpdateInfo } from '../types';
 
 export const sendNotification = (content: string) => {
-    ipcRenderer.send('send-notification', content);
+    typedIpcRenderer.invoke('send-notification', content);
 };
-export const showOnTray = (content: string) => {
-    ipcRenderer.send('update-tray', content);
+export const showOnTray = (content: {
+    // eslint-disable-next-line camelcase
+    export_progress?: any;
+    // eslint-disable-next-line camelcase
+    retry_export?: any;
+    paused?: any;
+}) => {
+    typedIpcRenderer.invoke('update-tray', content);
 };
 export const reloadWindow = () => {
-    ipcRenderer.send('reload-window');
+    typedIpcRenderer.invoke('reload-window');
 };
 
 export const registerUpdateEventListener = (
     showUpdateDialog: (updateInfo: AppUpdateInfo) => void
 ) => {
-    ipcRenderer.removeAllListeners('show-update-dialog');
-    ipcRenderer.on('show-update-dialog', (_, updateInfo: AppUpdateInfo) => {
-        showUpdateDialog(updateInfo);
-    });
+    typedIpcRenderer.removeAllListeners('show-update-dialog');
+    typedIpcRenderer.on(
+        'show-update-dialog',
+        (_, updateInfo: AppUpdateInfo) => {
+            showUpdateDialog(updateInfo);
+        }
+    );
 };
 
 export const updateAndRestart = () => {
-    ipcRenderer.send('update-and-restart');
+    typedIpcRenderer.send('update-and-restart');
 };
 
 export const skipAppVersion = (version: string) => {
-    ipcRenderer.send('skip-app-version', version);
+    typedIpcRenderer.send('skip-app-version', version);
 };

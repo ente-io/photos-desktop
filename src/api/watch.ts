@@ -1,9 +1,9 @@
 import { isMappingPresent } from '../utils/watch';
 import path from 'path';
-import { ipcRenderer } from 'electron';
 import { ElectronFile, WatchMapping } from '../types';
 import { getElectronFile } from '../services/fs';
 import { getWatchMappings, setWatchMappings } from '../services/watch';
+import { typedIpcRenderer } from '../types/ipc';
 
 export async function addWatchMapping(
     rootFolderName: string,
@@ -16,7 +16,7 @@ export async function addWatchMapping(
         throw new Error(`Watch mapping already exists`);
     }
 
-    await ipcRenderer.invoke('add-watcher', {
+    await typedIpcRenderer.invoke('add-watcher', {
         dir: folderPath,
     });
 
@@ -41,7 +41,7 @@ export async function removeWatchMapping(folderPath: string) {
         throw new Error(`Watch mapping does not exist`);
     }
 
-    await ipcRenderer.invoke('remove-watcher', {
+    await typedIpcRenderer.invoke('remove-watcher', {
         dir: watchMapping.folderPath,
     });
 
@@ -91,22 +91,22 @@ export function registerWatcherFunctions(
     removeFile: (path: string) => Promise<void>,
     removeFolder: (folderPath: string) => Promise<void>
 ) {
-    ipcRenderer.removeAllListeners('watch-add');
-    ipcRenderer.removeAllListeners('watch-change');
-    ipcRenderer.removeAllListeners('watch-unlink');
-    ipcRenderer.on('watch-add', async (_, filePath: string) => {
+    typedIpcRenderer.removeAllListeners('watch-add');
+    typedIpcRenderer.removeAllListeners('watch-unlink');
+    typedIpcRenderer.removeAllListeners('watch-unlink-dir');
+    typedIpcRenderer.on('watch-add', async (_, filePath: string) => {
         filePath = path.normalize(
             filePath.split(path.sep).join(path.posix.sep)
         );
         await addFile(await getElectronFile(filePath));
     });
-    ipcRenderer.on('watch-unlink', async (_, filePath: string) => {
+    typedIpcRenderer.on('watch-unlink', async (_, filePath: string) => {
         filePath = path.normalize(
             filePath.split(path.sep).join(path.posix.sep)
         );
         await removeFile(filePath);
     });
-    ipcRenderer.on('watch-unlink-dir', async (_, folderPath: string) => {
+    typedIpcRenderer.on('watch-unlink-dir', async (_, folderPath: string) => {
         folderPath = path.normalize(
             folderPath.split(path.sep).join(path.posix.sep)
         );

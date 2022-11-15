@@ -1,12 +1,12 @@
-import { ipcRenderer } from 'electron/renderer';
 import path from 'path';
 import { existsSync, mkdir, rmSync } from 'promise-fs';
+import { typedIpcRenderer } from '../types/ipc';
 import { DiskCache } from '../services/diskCache';
 
 const CACHE_DIR = 'ente';
 
 const getCacheDir = async () => {
-    const systemCacheDir = await ipcRenderer.invoke('get-path', 'cache');
+    const systemCacheDir = await typedIpcRenderer.invoke('get-path', 'cache');
     return path.join(systemCacheDir, CACHE_DIR);
 };
 
