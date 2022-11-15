@@ -1,8 +1,6 @@
-import { ipcRenderer, ipcMain } from 'electron';
-import { TypedIpcMain, TypedIpcRenderer } from 'electron-typed-ipc';
 import { AppUpdateInfo } from '../types';
 
-type Events = {
+export type IPCEvents = {
     'resume-export': () => void;
     'stop-export': () => void;
     'pause-export': () => void;
@@ -15,7 +13,7 @@ type Events = {
     'watch-unlink-dir': (folderPath: string) => void;
 };
 
-type Commands = {
+export type IPCCommands = {
     'select-dir': () => string;
     'show-upload-files-dialog': () => string[];
     'show-upload-zip-dialog': () => string[];
@@ -60,8 +58,3 @@ type Commands = {
     'update-and-restart': () => void;
     'skip-app-version': (version: string) => void;
 };
-export const typedIpcMain = ipcMain as TypedIpcMain<Events, Commands>;
-export const typedIpcRenderer = ipcRenderer as TypedIpcRenderer<
-    Events,
-    Commands
->;

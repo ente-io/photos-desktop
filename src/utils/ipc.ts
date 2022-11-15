@@ -5,6 +5,8 @@ import {
     Notification,
     safeStorage,
     app,
+    ipcMain,
+    ipcRenderer,
 } from 'electron';
 import { createWindow } from './createWindow';
 import { buildContextMenu } from './menu';
@@ -18,8 +20,14 @@ import {
     skipAppVersion,
     updateAndRestart,
 } from '../services/appUpdater';
+import { TypedIpcMain, TypedIpcRenderer } from 'electron-typed-ipc';
+import { IPCEvents, IPCCommands } from '../types/ipc';
 
-import { typedIpcMain } from '../types/ipc';
+export const typedIpcMain = ipcMain as TypedIpcMain<IPCEvents, IPCCommands>;
+export const typedIpcRenderer = ipcRenderer as TypedIpcRenderer<
+    IPCEvents,
+    IPCCommands
+>;
 
 export default function setupIpcComs(
     tray: Tray,
