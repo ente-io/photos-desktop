@@ -11,6 +11,7 @@
     "linux": {
       "target": [
         "AppImage",
+        "snap",
         "deb",
         "rpm",
         "pacman",
