@@ -2,8 +2,8 @@ import { typedIpcRenderer } from '../ipc';
 
 import { AppUpdateInfo } from '../types';
 
-export const sendNotification = (content: string) => {
-    typedIpcRenderer.invoke('send-notification', content);
+export const sendNotification = async (content: string) => {
+    await typedIpcRenderer.invoke('send-notification', content);
 };
 export const showOnTray = async (content: {
     // eslint-disable-next-line camelcase
