@@ -86,11 +86,11 @@ export default function setupIpcComs(
         return files;
     });
 
-    typedIpcMain.handle('add-watcher', async (_, args: { dir: string }) => {
+    typedIpcMain.handle('add-watcher', (_, args: { dir: string }) => {
         watcher.add(args.dir);
     });
 
-    typedIpcMain.handle('remove-watcher', async (_, args: { dir: string }) => {
+    typedIpcMain.handle('remove-watcher', (_, args: { dir: string }) => {
         watcher.unwatch(args.dir);
     });
 
@@ -110,8 +110,8 @@ export default function setupIpcComs(
         return app.getPath(message);
     });
 
-    typedIpcMain.handle('convert-heic', (_, fileData) => {
-        return convertHEIC(fileData);
+    typedIpcMain.handle('convert-heic', async (_, fileData) => {
+        return await convertHEIC(fileData);
     });
 
     typedIpcMain.handle('update-and-restart', () => {
@@ -130,17 +130,17 @@ export default function setupIpcComs(
 
     ipcMain.handle(
         'run-ffmpeg-cmd',
-        (_, cmd, inputFilePath, outputFileName) => {
-            return runFFmpegCmd(cmd, inputFilePath, outputFileName);
+        async (_, cmd, inputFilePath, outputFileName) => {
+            return await runFFmpegCmd(cmd, inputFilePath, outputFileName);
         }
     );
     ipcMain.handle(
         'write-temp-file',
-        (_, fileStream: Uint8Array, fileName: string) => {
-            return writeTempFile(fileStream, fileName);
+        async (_, fileStream: Uint8Array, fileName: string) => {
+            return await writeTempFile(fileStream, fileName);
         }
     );
-    ipcMain.handle('remove-temp-file', (_, tempFilePath: string) => {
-        return deleteTempFile(tempFilePath);
+    ipcMain.handle('remove-temp-file', async (_, tempFilePath: string) => {
+        return await deleteTempFile(tempFilePath);
     });
 }

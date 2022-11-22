@@ -42,7 +42,7 @@ type IPCCommands = {
             | 'logs'
             | 'crashDumps'
     ) => string;
-    'convert-heic': (fileData: Uint8Array) => Uint8Array;
+    'convert-heic': (fileData: Uint8Array) => Promise<Uint8Array>;
     'get-sentry-id': () => string;
     'get-app-version': () => string;
 
@@ -60,15 +60,15 @@ type IPCCommands = {
     'log-error': (err: Error, msg: string, info?: Record<any, any>) => void;
     'update-and-restart': () => void;
     'skip-app-version': (version: string) => void;
-    'write-temp-file': (
-        fileStream: Uint8Array,
-        fileName: string
-    ) => Promise<string>;
     'run-ffmpeg-cmd': (
         cmd: string[],
         inputFilePath: string,
         outputFileName: string
     ) => Promise<Uint8Array>;
+    'write-temp-file': (
+        fileStream: Uint8Array,
+        fileName: string
+    ) => Promise<string>;
     'remove-temp-file': (tempFilePath: string) => Promise<void>;
 };
 
