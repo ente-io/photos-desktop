@@ -1,6 +1,5 @@
 import { app, BrowserWindow } from 'electron';
 import { createWindow } from './utils/createWindow';
-import setupIpcComs from './utils/ipcComms';
 import { initWatcher } from './services/chokidar';
 import { addAllowOriginHeader } from './utils/cors';
 import {
@@ -16,6 +15,7 @@ import {
 } from './utils/main';
 import { initSentry } from './services/sentry';
 import { setupLogging } from './utils/logging';
+import setupIpcComs from './utils/ipc';
 
 let mainWindow: BrowserWindow;
 
