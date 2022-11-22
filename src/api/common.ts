@@ -1,4 +1,5 @@
-import { typedIpcRenderer } from '../types/ipc';
+import { typedIpcRenderer } from '../ipc';
+
 import { logError } from '../services/logging';
 
 export const selectRootDirectory = async (): Promise<string> => {

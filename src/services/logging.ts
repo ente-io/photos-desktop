@@ -1,5 +1,5 @@
 import log from 'electron-log';
-import { typedIpcRenderer } from '../types/ipc';
+import { typedIpcRenderer } from '../ipc';
 
 export function logToDisk(logLine: string) {
     log.info(logLine);

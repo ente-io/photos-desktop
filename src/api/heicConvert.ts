@@ -1,4 +1,5 @@
-import { typedIpcRenderer } from '../types/ipc';
+import { typedIpcRenderer } from '../ipc';
+
 import { isPlatformMac } from '../utils/preload';
 
 export async function convertHEIC(fileData: Uint8Array): Promise<Uint8Array> {

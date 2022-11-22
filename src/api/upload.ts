@@ -6,7 +6,7 @@ import {
     getElectronFilesFromGoogleZip,
     getSavedFilePaths,
 } from '../services/upload';
-import { typedIpcRenderer } from '../types/ipc';
+import { typedIpcRenderer } from '../ipc';
 
 export const getPendingUploads = async () => {
     const filePaths = getSavedFilePaths(FILE_PATH_TYPE.FILES);

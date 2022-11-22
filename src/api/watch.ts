@@ -3,7 +3,7 @@ import path from 'path';
 import { ElectronFile, WatchMapping } from '../types';
 import { getElectronFile } from '../services/fs';
 import { getWatchMappings, setWatchMappings } from '../services/watch';
-import { typedIpcRenderer } from '../types/ipc';
+import { typedIpcRenderer } from '../ipc';
 
 export async function addWatchMapping(
     rootFolderName: string,

@@ -1,6 +1,6 @@
 import path from 'path';
 import { existsSync, mkdir, rmSync } from 'promise-fs';
-import { typedIpcRenderer } from '../types/ipc';
+import { typedIpcRenderer } from '../ipc';
 import { DiskCache } from '../services/diskCache';
 
 const CACHE_DIR = 'ente';

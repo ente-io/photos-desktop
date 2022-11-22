@@ -1,4 +1,5 @@
-import { typedIpcRenderer } from '../types/ipc';
+import { typedIpcRenderer } from '../ipc';
+
 import { AppUpdateInfo } from '../types';
 
 export const sendNotification = (content: string) => {

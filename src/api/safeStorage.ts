@@ -1,6 +1,6 @@
 import { safeStorageStore } from '../stores/safeStorage.store';
 import { logError } from '../services/logging';
-import { typedIpcRenderer } from '../types/ipc';
+import { typedIpcRenderer } from '../ipc';
 
 export async function setEncryptionKey(encryptionKey: string) {
     try {

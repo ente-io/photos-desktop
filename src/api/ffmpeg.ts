@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron';
+import { typedIpcRenderer } from '../ipc';
 import { logError } from '../services/logging';
 import { ElectronFile } from '../types';
 
@@ -12,7 +12,7 @@ export async function runFFmpegCmd(
     try {
         if (!inputFile.path) {
             const inputFileData = new Uint8Array(await inputFile.arrayBuffer());
-            inputFilePath = await ipcRenderer.invoke(
+            inputFilePath = await typedIpcRenderer.invoke(
                 'write-temp-file',
                 inputFileData,
                 inputFile.name
@@ -21,7 +21,7 @@ export async function runFFmpegCmd(
         } else {
             inputFilePath = inputFile.path;
         }
-        const outputFileData = await ipcRenderer.invoke(
+        const outputFileData = await typedIpcRenderer.invoke(
             'run-ffmpeg-cmd',
             cmd,
             inputFilePath,
@@ -31,7 +31,10 @@ export async function runFFmpegCmd(
     } finally {
         if (createdTempInputFile) {
             try {
-                await ipcRenderer.invoke('remove-temp-file', inputFilePath);
+                await typedIpcRenderer.invoke(
+                    'remove-temp-file',
+                    inputFilePath
+                );
             } catch (e) {
                 logError(e, 'failed to deleteTempFile');
             }

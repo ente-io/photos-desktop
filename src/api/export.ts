@@ -1,7 +1,7 @@
 import { readTextFile, writeStream } from './../services/fs';
 import { logError } from '../services/logging';
 import * as fs from 'promise-fs';
-import { typedIpcRenderer } from '../types/ipc';
+import { typedIpcRenderer } from '../ipc';
 
 export const exists = (path: string) => {
     return fs.existsSync(path);

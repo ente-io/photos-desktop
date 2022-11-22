@@ -6,7 +6,6 @@ import {
     safeStorage,
     app,
     ipcMain,
-    ipcRenderer,
 } from 'electron';
 import { createWindow } from './createWindow';
 import { buildContextMenu } from './menu';
@@ -26,15 +25,7 @@ import {
     runFFmpegCmd,
     writeTempFile,
 } from '../services/ffmpeg';
-
-import { TypedIpcMain, TypedIpcRenderer } from 'electron-typed-ipc';
-import { IPCEvents, IPCCommands } from '../types/ipc';
-
-export const typedIpcMain = ipcMain as TypedIpcMain<IPCEvents, IPCCommands>;
-export const typedIpcRenderer = ipcRenderer as TypedIpcRenderer<
-    IPCEvents,
-    IPCCommands
->;
+import { typedIpcMain } from '../ipc';
 
 export default function setupIpcComs(
     tray: Tray,
