@@ -5,6 +5,7 @@ import { AppUpdateInfo } from '../types';
 export const sendNotification = async (content: string) => {
     await typedIpcRenderer.invoke('send-notification', content);
 };
+
 export const showOnTray = async (content: {
     // eslint-disable-next-line camelcase
     export_progress?: any;
@@ -14,6 +15,7 @@ export const showOnTray = async (content: {
 }) => {
     await typedIpcRenderer.invoke('update-tray', content);
 };
+
 export const reloadWindow = async () => {
     await typedIpcRenderer.invoke('reload-window');
 };
