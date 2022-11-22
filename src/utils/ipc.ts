@@ -5,7 +5,6 @@ import {
     Notification,
     safeStorage,
     app,
-    ipcMain,
 } from 'electron';
 import { createWindow } from './createWindow';
 import { buildContextMenu } from './menu';
@@ -86,15 +85,15 @@ export default function setupIpcComs(
         return files;
     });
 
-    typedIpcMain.handle('add-watcher', (_, args: { dir: string }) => {
+    typedIpcMain.handle('add-watcher', (_, args) => {
         watcher.add(args.dir);
     });
 
-    typedIpcMain.handle('remove-watcher', (_, args: { dir: string }) => {
+    typedIpcMain.handle('remove-watcher', (_, args) => {
         watcher.unwatch(args.dir);
     });
 
-    typedIpcMain.handle('log-error', (_, err, msg, info?) => {
+    typedIpcMain.handle('log-error', (_, err, msg, info) => {
         logErrorSentry(err, msg, info);
     });
 
@@ -127,20 +126,16 @@ export default function setupIpcComs(
     typedIpcMain.handle('get-app-version', () => {
         return getAppVersion();
     });
-
-    ipcMain.handle(
+    typedIpcMain.handle(
         'run-ffmpeg-cmd',
         async (_, cmd, inputFilePath, outputFileName) => {
             return await runFFmpegCmd(cmd, inputFilePath, outputFileName);
         }
     );
-    ipcMain.handle(
-        'write-temp-file',
-        async (_, fileStream: Uint8Array, fileName: string) => {
-            return await writeTempFile(fileStream, fileName);
-        }
-    );
-    ipcMain.handle('remove-temp-file', async (_, tempFilePath: string) => {
+    typedIpcMain.handle('write-temp-file', async (_, fileStream, fileName) => {
+        return await writeTempFile(fileStream, fileName);
+    });
+    typedIpcMain.handle('remove-temp-file', async (_, tempFilePath: string) => {
         return await deleteTempFile(tempFilePath);
     });
 }
