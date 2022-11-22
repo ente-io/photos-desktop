@@ -5,17 +5,17 @@ import { AppUpdateInfo } from '../types';
 export const sendNotification = (content: string) => {
     typedIpcRenderer.invoke('send-notification', content);
 };
-export const showOnTray = (content: {
+export const showOnTray = async (content: {
     // eslint-disable-next-line camelcase
     export_progress?: any;
     // eslint-disable-next-line camelcase
     retry_export?: any;
     paused?: any;
 }) => {
-    typedIpcRenderer.invoke('update-tray', content);
+    await typedIpcRenderer.invoke('update-tray', content);
 };
-export const reloadWindow = () => {
-    typedIpcRenderer.invoke('reload-window');
+export const reloadWindow = async () => {
+    await typedIpcRenderer.invoke('reload-window');
 };
 
 export const registerUpdateEventListener = (
@@ -30,10 +30,10 @@ export const registerUpdateEventListener = (
     );
 };
 
-export const updateAndRestart = () => {
-    typedIpcRenderer.send('update-and-restart');
+export const updateAndRestart = async () => {
+    await typedIpcRenderer.invoke('update-and-restart');
 };
 
-export const skipAppVersion = (version: string) => {
-    typedIpcRenderer.send('skip-app-version', version);
+export const skipAppVersion = async (version: string) => {
+    await typedIpcRenderer.invoke('skip-app-version', version);
 };
