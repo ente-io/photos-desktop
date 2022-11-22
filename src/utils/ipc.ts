@@ -20,6 +20,13 @@ import {
     skipAppVersion,
     updateAndRestart,
 } from '../services/appUpdater';
+
+import {
+    deleteTempFile,
+    runFFmpegCmd,
+    writeTempFile,
+} from '../services/ffmpeg';
+
 import { TypedIpcMain, TypedIpcRenderer } from 'electron-typed-ipc';
 import { IPCEvents, IPCCommands } from '../types/ipc';
 
@@ -128,5 +135,21 @@ export default function setupIpcComs(
 
     typedIpcMain.handle('get-app-version', () => {
         return getAppVersion();
+    });
+
+    ipcMain.handle(
+        'run-ffmpeg-cmd',
+        (_, cmd, inputFilePath, outputFileName) => {
+            return runFFmpegCmd(cmd, inputFilePath, outputFileName);
+        }
+    );
+    ipcMain.handle(
+        'write-temp-file',
+        (_, fileStream: Uint8Array, fileName: string) => {
+            return writeTempFile(fileStream, fileName);
+        }
+    );
+    ipcMain.handle('remove-temp-file', (_, tempFilePath: string) => {
+        return deleteTempFile(tempFilePath);
     });
 }
