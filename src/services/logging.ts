@@ -5,18 +5,18 @@ export function logToDisk(logLine: string) {
     log.info(logLine);
 }
 
-export function openLogDirectory() {
-    typedIpcRenderer.invoke('get-path', 'logs');
+export async function openLogDirectory() {
+    await typedIpcRenderer.invoke('get-path', 'logs');
 }
 
-export function logError(
+export async function logError(
     error: Error,
     message: string,
     info?: Record<any, any>
-): void {
-    typedIpcRenderer.invoke('log-error', error, message, info);
+): Promise<void> {
+    await typedIpcRenderer.invoke('log-error', error, message, info);
 }
 
-export function getSentryUserID(): Promise<string> {
-    return typedIpcRenderer.invoke('get-sentry-id');
+export async function getSentryUserID(): Promise<string> {
+    return await typedIpcRenderer.invoke('get-sentry-id');
 }
