@@ -96,6 +96,11 @@ async function logSpikeRendererMemoryUsage() {
         processMemoryInfo.private
     );
 
+    ElectronLog.log(
+        'renderer process memory usage: ',
+        convertBytesToHumanReadable(currentMemoryUsage * 1024)
+    );
+
     const previousMemoryUsage = Math.max(
         previousRendererProcessMemoryInfo.private,
         previousRendererProcessMemoryInfo.residentSet ?? 0
@@ -154,11 +159,11 @@ async function logRendererProcessStats() {
 }
 
 export function setupMainProcessStatsLogger() {
-    setInterval(
-        logSpikeMainMemoryUsage,
-        SPIKE_DETECTION_INTERVAL_IN_MICROSECONDS
-    );
-    setInterval(logMainProcessStats, LOGGING_INTERVAL_IN_MICROSECONDS);
+    // setInterval(
+    //     logSpikeMainMemoryUsage,
+    //     SPIKE_DETECTION_INTERVAL_IN_MICROSECONDS
+    // );
+    // setInterval(logMainProcessStats, LOGGING_INTERVAL_IN_MICROSECONDS);
 }
 
 export function setupRendererProcessStatsLogger() {
@@ -166,7 +171,7 @@ export function setupRendererProcessStatsLogger() {
         logSpikeRendererMemoryUsage,
         SPIKE_DETECTION_INTERVAL_IN_MICROSECONDS
     );
-    setInterval(logRendererProcessStats, LOGGING_INTERVAL_IN_MICROSECONDS);
+    // setInterval(logRendererProcessStats, LOGGING_INTERVAL_IN_MICROSECONDS);
 }
 
 export async function logRendererProcessMemoryUsage(message: string) {
