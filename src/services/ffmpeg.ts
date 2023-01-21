@@ -1,88 +1,84 @@
 import pathToFfmpeg from 'ffmpeg-static';
-import * as fs from 'promise-fs';
-import path from 'path';
-import { ElectronFile } from '../types';
-const shellescape = require('any-shell-escape');
 import util from 'util';
-const exec = util.promisify(require('child_process').exec);
-import { doesFolderExists, getElectronFile } from './fs';
-import { emptyDir } from 'fs-extra';
-import { ipcRenderer } from 'electron';
-import { logError } from '../utils/logging';
+import log from 'electron-log';
+import { readFile, rmSync, writeFile } from 'promise-fs';
+import { logErrorSentry } from './sentry';
+import { generateTempFilePath, getTempDirPath } from '../utils/temp';
+import { existsSync } from 'fs';
 
-const ENTE_TEMP_FOLDER_NAME = 'ente_ffmpeg_temp';
+const shellescape = require('any-shell-escape');
 
-class FfmpegService {
-    ffmpegPath: string;
+const execAsync = util.promisify(require('child_process').exec);
 
-    constructor() {
-        this.clearEnteTempFolder();
-        this.ffmpegPath = pathToFfmpeg.replace('app.asar', 'app.asar.unpacked');
-    }
+const INPUT_PATH_PLACEHOLDER = 'INPUT';
+const FFMPEG_PLACEHOLDER = 'FFMPEG';
+const OUTPUT_PATH_PLACEHOLDER = 'OUTPUT';
 
-    async getTranscodedFile(
-        cmds: string[],
-        inputFile: ElectronFile,
-        outputFileExt: string
-    ): Promise<ElectronFile> {
-        try {
-            await this.createEnteTempFolder();
-            const outputFileName = this.genRandomName(10) + '.' + outputFileExt;
-            const outputFilePath =
-                (await this.getTempFolderPath()) + path.sep + outputFileName;
-            for (let i = 0; i < cmds.length; i++) {
-                if (cmds[i] === 'FFMPEG') {
-                    cmds[i] = this.ffmpegPath;
-                } else if (cmds[i] === 'INPUT') {
-                    cmds[i] = inputFile.path
-                        .split(path.posix.sep)
-                        .join(path.sep);
-                } else if (cmds[i] === 'OUTPUT') {
-                    cmds[i] = outputFilePath;
-                }
+function getFFmpegStaticPath() {
+    return pathToFfmpeg.replace('app.asar', 'app.asar.unpacked');
+}
+
+export async function runFFmpegCmd(
+    cmd: string[],
+    inputFilePath: string,
+    outputFileName: string
+) {
+    let tempOutputFilePath: string;
+    try {
+        tempOutputFilePath = await generateTempFilePath(outputFileName);
+
+        cmd = cmd.map((cmdPart) => {
+            if (cmdPart === FFMPEG_PLACEHOLDER) {
+                return getFFmpegStaticPath();
+            } else if (cmdPart === INPUT_PATH_PLACEHOLDER) {
+                return inputFilePath;
+            } else if (cmdPart === OUTPUT_PATH_PLACEHOLDER) {
+                return tempOutputFilePath;
+            } else {
+                return cmdPart;
             }
-            const cmd = shellescape(cmds);
-            console.log('cmd', cmd);
-            await exec(cmd);
-            const outputFile = await getElectronFile(outputFilePath);
-            return outputFile;
-        } catch (err) {
-            console.log(err);
-            logError(err, 'ffmpeg run command error');
+        });
+        const escapedCmd = shellescape(cmd);
+        log.info('running ffmpeg command', escapedCmd);
+        const startTime = Date.now();
+        await execAsync(escapedCmd);
+        if (!existsSync(tempOutputFilePath)) {
+            throw new Error('ffmpeg output file not found');
         }
-    }
+        log.info(
+            'ffmpeg command execution time ',
+            escapedCmd,
+            Date.now() - startTime,
+            'ms'
+        );
 
-    genRandomName(length: number) {
-        let result = '';
-        const characters =
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        const charactersLength = characters.length;
-        for (let i = 0; i < length; i++) {
-            result += characters.charAt(
-                Math.floor(Math.random() * charactersLength)
-            );
-        }
-        return result;
-    }
-
-    async getTempFolderPath() {
-        const tempPath = (await ipcRenderer.invoke('get-temp-path')) as string;
-        return tempPath + path.sep + ENTE_TEMP_FOLDER_NAME;
-    }
-
-    async createEnteTempFolder() {
-        const tempFolder = await this.getTempFolderPath();
-        if (!(await doesFolderExists(tempFolder))) {
-            await fs.mkdir(tempFolder, { recursive: true });
-        }
-    }
-
-    async clearEnteTempFolder() {
-        const tempFolder = await this.getTempFolderPath();
-        if (await doesFolderExists(tempFolder)) {
-            await emptyDir(tempFolder);
+        const outputFile = await readFile(tempOutputFilePath);
+        return new Uint8Array(outputFile);
+    } catch (e) {
+        logErrorSentry(e, 'ffmpeg run command error');
+        throw e;
+    } finally {
+        try {
+            rmSync(tempOutputFilePath, { force: true });
+        } catch (e) {
+            logErrorSentry(e, 'failed to remove tempOutputFile');
         }
     }
 }
 
-export default new FfmpegService();
+export async function writeTempFile(fileStream: Uint8Array, fileName: string) {
+    const tempFilePath = await generateTempFilePath(fileName);
+    await writeFile(tempFilePath, fileStream);
+    return tempFilePath;
+}
+
+export async function deleteTempFile(tempFilePath: string) {
+    const tempDirPath = await getTempDirPath();
+    if (!tempFilePath.startsWith(tempDirPath)) {
+        logErrorSentry(
+            Error('not a temp file'),
+            'tried to delete a non temp file'
+        );
+    }
+    rmSync(tempFilePath, { force: true });
+}

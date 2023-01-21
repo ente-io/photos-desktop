@@ -1,22 +1,15 @@
-import {} from './common';
-import {
-    createDirectory,
-    doesPathExists,
-    readTextFile,
-    renameDirectory,
-    writeFile,
-    writeStream,
-} from './../services/fs';
+import { readTextFile, writeStream } from './../services/fs';
 import { ipcRenderer } from 'electron';
-import { logError } from '../utils/logging';
+import { logError } from '../services/logging';
+import * as fs from 'promise-fs';
 
 export const exists = (path: string) => {
-    return doesPathExists(path);
+    return fs.existsSync(path);
 };
 
 export const checkExistsAndCreateCollectionDir = async (dirPath: string) => {
-    if (!doesPathExists(dirPath)) {
-        await createDirectory(dirPath);
+    if (!fs.existsSync(dirPath)) {
+        await fs.mkdir(dirPath);
     }
 };
 
@@ -24,37 +17,36 @@ export const checkExistsAndRename = async (
     oldDirPath: string,
     newDirPath: string
 ) => {
-    if (doesPathExists(oldDirPath)) {
-        await renameDirectory(oldDirPath, newDirPath);
+    if (fs.existsSync(oldDirPath)) {
+        await fs.rename(oldDirPath, newDirPath);
     }
 };
 
-export const saveStreamToDisk = (
+export const saveStreamToDisk = async (
     filePath: string,
-    fileStream: ReadableStream<any>
+    fileStream: ReadableStream<Uint8Array>
 ) => {
-    writeStream(filePath, fileStream);
+    await writeStream(filePath, fileStream);
 };
 
 export const saveFileToDisk = async (path: string, fileData: any) => {
-    await writeFile(path, fileData);
+    await fs.writeFile(path, fileData);
 };
 
 export const getExportRecord = async (filePath: string) => {
     try {
-        if (!(await doesPathExists(filePath))) {
+        if (!fs.existsSync(filePath)) {
             return null;
         }
         const recordFile = await readTextFile(filePath);
         return recordFile;
     } catch (e) {
-        // ignore exportFile missing
         logError(e, 'error while selecting files');
     }
 };
 
 export const setExportRecord = async (filePath: string, data: string) => {
-    await writeFile(filePath, data);
+    await fs.writeFile(filePath, data);
 };
 
 export const registerResumeExportListener = (resumeExport: () => void) => {

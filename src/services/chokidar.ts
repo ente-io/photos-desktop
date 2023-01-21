@@ -1,6 +1,6 @@
 import chokidar from 'chokidar';
 import { BrowserWindow } from 'electron';
-import { logError } from '../utils/logging';
+import { logError } from '../services/logging';
 import { getWatchMappings } from '../api/watch';
 
 export function initWatcher(mainWindow: BrowserWindow) {
@@ -23,7 +23,7 @@ export function initWatcher(mainWindow: BrowserWindow) {
             mainWindow.webContents.send('watch-unlink', path);
         })
         .on('unlinkDir', (path) => {
-            mainWindow.webContents.send('watch-unlink', path, true);
+            mainWindow.webContents.send('watch-unlink-dir', path);
         })
         .on('error', (error) => {
             logError(error, 'error while watching files');

@@ -1,20 +1,25 @@
-import { app, BrowserWindow, Menu, Tray, nativeImage } from 'electron';
-import * as path from 'path';
-import AppUpdater from './utils/appUpdater';
+import { app, BrowserWindow } from 'electron';
 import { createWindow } from './utils/createWindow';
 import setupIpcComs from './utils/ipcComms';
-import { buildContextMenu, buildMenuBar } from './utils/menuUtil';
-import initSentry from './utils/sentry';
-import { isDev } from './utils/common';
 import { initWatcher } from './services/chokidar';
+import { addAllowOriginHeader } from './utils/cors';
+import {
+    setupTrayItem,
+    handleDownloads,
+    setupMacWindowOnDockIconClick,
+    setupMainMenu,
+    setupMainHotReload,
+    setupNextElectronServe,
+    enableSharedArrayBufferSupport,
+    handleDockIconHideOnAutoLaunch,
+    handleUpdates,
+    logSystemInfo,
+} from './utils/main';
+import { initSentry } from './services/sentry';
+import { setupLogging } from './utils/logging';
+import { isDev } from './utils/common';
+import { setupMainProcessStatsLogger } from './utils/processStats';
 
-if (isDev) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const electronReload = require('electron-reload');
-    electronReload(__dirname, {});
-}
-
-let tray: Tray;
 let mainWindow: BrowserWindow;
 
 let appIsQuitting = false;
@@ -36,10 +41,18 @@ export const setIsUpdateAvailable = (value: boolean): void => {
     updateIsAvailable = value;
 };
 
+setupMainHotReload();
+
+setupNextElectronServe();
+
+setupLogging(isDev);
+
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
     app.quit();
 } else {
+    handleDockIconHideOnAutoLaunch();
+    enableSharedArrayBufferSupport();
     app.on('second-instance', () => {
         // Someone tried to run a second instance, we should focus our window.
         if (mainWindow) {
@@ -54,30 +67,20 @@ if (!gotTheLock) {
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
-    app.on('ready', () => {
+    app.on('ready', async () => {
+        logSystemInfo();
+        setupMainProcessStatsLogger();
         initSentry();
-        setIsUpdateAvailable(false);
-        mainWindow = createWindow();
-        Menu.setApplicationMenu(buildMenuBar());
-
-        app.on('activate', function () {
-            // On macOS it's common to re-create a window in the app when the
-            // dock icon is clicked and there are no other windows open.
-            if (BrowserWindow.getAllWindows().length === 0) createWindow();
-        });
-
-        const trayImgPath = isDev
-            ? 'build/taskbar-icon.png'
-            : path.join(process.resourcesPath, 'taskbar-icon.png');
-        const trayIcon = nativeImage.createFromPath(trayImgPath);
-        tray = new Tray(trayIcon);
-        tray.setToolTip('ente');
-        tray.setContextMenu(buildContextMenu(mainWindow));
-
+        mainWindow = await createWindow();
+        const tray = setupTrayItem(mainWindow);
         const watcher = initWatcher(mainWindow);
+        setupMacWindowOnDockIconClick();
+        setupMainMenu();
         setupIpcComs(tray, mainWindow, watcher);
-        if (!isDev) {
-            AppUpdater.checkForUpdate(tray, mainWindow);
-        }
+        handleUpdates(mainWindow);
+        handleDownloads(mainWindow);
+        addAllowOriginHeader(mainWindow);
     });
+
+    app.on('before-quit', () => setIsAppQuitting(true));
 }

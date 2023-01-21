@@ -1,10 +1,13 @@
 import { app, BrowserWindow, nativeImage } from 'electron';
 import * as path from 'path';
 import { isDev } from './common';
-import { PROD_HOST_URL } from '../config';
 import { isAppQuitting } from '../main';
+import { PROD_HOST_URL } from '../config';
+import { isPlatform } from './main';
+import { getHideDockIconPreference } from '../services/userPreference';
+import autoLauncher from '../services/autoLauncher';
 
-export function createWindow(): BrowserWindow {
+export async function createWindow(): Promise<BrowserWindow> {
     const appImgPath = isDev
         ? 'build/window-icon.png'
         : path.join(process.resourcesPath, 'window-icon.png');
@@ -13,26 +16,28 @@ export function createWindow(): BrowserWindow {
     const mainWindow = new BrowserWindow({
         height: 600,
         width: 800,
-        backgroundColor: '#111111',
         webPreferences: {
+            sandbox: false,
             preload: path.join(__dirname, '../preload.js'),
             contextIsolation: false,
         },
         icon: appIcon,
-        show: false, // don't show the main window
+        show: false, // don't show the main window on load,
     });
     mainWindow.maximize();
+    const wasAutoLaunched = await autoLauncher.wasAutoLaunched();
+
     const splash = new BrowserWindow({
-        alwaysOnTop: true,
         height: 600,
         width: 800,
         transparent: true,
+        show: !wasAutoLaunched,
     });
     splash.maximize();
 
     if (isDev) {
         splash.loadFile(`../build/splash.html`);
-        mainWindow.loadURL('http://localhost:3000');
+        mainWindow.loadURL(PROD_HOST_URL);
         // Open the DevTools.
         mainWindow.webContents.openDevTools();
     } else {
@@ -43,25 +48,49 @@ export function createWindow(): BrowserWindow {
     }
     mainWindow.webContents.on('did-fail-load', () => {
         splash.close();
-        mainWindow.show();
         isDev
             ? mainWindow.loadFile(`../../build/error.html`)
             : splash.loadURL(
                   `file://${path.join(process.resourcesPath, 'error.html')}`
               );
     });
-    mainWindow.once('ready-to-show', () => {
-        mainWindow.show();
-        splash.destroy();
+    mainWindow.once('ready-to-show', async () => {
+        try {
+            splash.destroy();
+            if (!wasAutoLaunched) {
+                mainWindow.show();
+            }
+        } catch (e) {
+            // ignore
+        }
     });
+    setTimeout(() => {
+        try {
+            splash.destroy();
+            if (!wasAutoLaunched) {
+                mainWindow.show();
+            }
+        } catch (e) {
+            // ignore
+        }
+    }, 2000);
     mainWindow.on('close', function (event) {
         if (!isAppQuitting()) {
             event.preventDefault();
             mainWindow.hide();
-            const isMac = process.platform === 'darwin';
-            isMac && app.dock.hide();
         }
         return false;
+    });
+    mainWindow.on('hide', () => {
+        const shouldHideDockIcon = getHideDockIconPreference();
+        if (isPlatform('mac') && shouldHideDockIcon) {
+            app.dock.hide();
+        }
+    });
+    mainWindow.on('show', () => {
+        if (isPlatform('mac')) {
+            app.dock.show();
+        }
     });
     return mainWindow;
 }

@@ -1,4 +1,12 @@
-import { reloadWindow, sendNotification, showOnTray } from './api/system';
+import {
+    registerUpdateEventListener,
+    reloadWindow,
+    sendNotification,
+    showOnTray,
+    updateAndRestart,
+    skipAppUpdate,
+    muteUpdateNotification,
+} from './api/system';
 import {
     showUploadDirsDialog,
     showUploadFilesDialog,
@@ -9,13 +17,15 @@ import {
     setToUploadCollection,
 } from './api/upload';
 import {
-    getAllFilesFromDir,
-    getWatchMappings,
     registerWatcherFunctions,
-    setWatchMappings,
     addWatchMapping,
     removeWatchMapping,
+    updateWatchMappingSyncedFiles,
+    updateWatchMappingIgnoredFiles,
+    getWatchMappings,
 } from './api/watch';
+import { getEncryptionKey, setEncryptionKey } from './api/safeStorage';
+import { openDiskCache, deleteDiskCache } from './api/cache';
 import {
     checkExistsAndCreateCollectionDir,
     checkExistsAndRename,
@@ -29,9 +39,26 @@ import {
     setExportRecord,
     exists,
 } from './api/export';
-import { selectRootDirectory, clearElectronStore } from './api/common';
-import { getElectronFile, doesFolderExists } from './services/fs';
-import { getTranscodedFile } from './api/ffmpeg';
+import {
+    selectRootDirectory,
+    logToDisk,
+    openLogDirectory,
+    getSentryUserID,
+    getAppVersion,
+} from './api/common';
+import { fixHotReloadNext12 } from './utils/preload';
+import { isFolder, getDirFiles } from './api/fs';
+import { convertHEIC, generateImageThumbnail } from './api/imageProcessor';
+import { setupLogging } from './utils/logging';
+import {
+    setupRendererProcessStatsLogger,
+    logRendererProcessMemoryUsage,
+} from './utils/processStats';
+import { runFFmpegCmd } from './api/ffmpeg';
+
+fixHotReloadNext12();
+setupLogging();
+setupRendererProcessStatsLogger();
 
 const windowObject: any = window;
 
@@ -42,7 +69,6 @@ windowObject['ElectronAPIs'] = {
     saveStreamToDisk,
     saveFileToDisk,
     selectRootDirectory,
-    clearElectronStore,
     sendNotification,
     showOnTray,
     reloadWindow,
@@ -52,7 +78,6 @@ windowObject['ElectronAPIs'] = {
     registerRetryFailedExportListener,
     getExportRecord,
     setExportRecord,
-    getElectronFile,
     showUploadFilesDialog,
     showUploadDirsDialog,
     getPendingUploads,
@@ -60,12 +85,28 @@ windowObject['ElectronAPIs'] = {
     showUploadZipDialog,
     getElectronFilesFromGoogleZip,
     setToUploadCollection,
-    getAllFilesFromDir,
+    getEncryptionKey,
+    setEncryptionKey,
+    openDiskCache,
+    deleteDiskCache,
+    getDirFiles,
     getWatchMappings,
-    setWatchMappings,
     addWatchMapping,
     removeWatchMapping,
     registerWatcherFunctions,
-    doesFolderExists,
-    getTranscodedFile,
+    isFolder,
+    updateWatchMappingSyncedFiles,
+    updateWatchMappingIgnoredFiles,
+    logToDisk,
+    convertHEIC,
+    openLogDirectory,
+    registerUpdateEventListener,
+    updateAndRestart,
+    skipAppUpdate,
+    getSentryUserID,
+    getAppVersion,
+    runFFmpegCmd,
+    muteUpdateNotification,
+    generateImageThumbnail,
+    logRendererProcessMemoryUsage,
 };

@@ -20,20 +20,22 @@ export interface KeysStoreType {
     };
 }
 
-type FileMapping = {
+interface WatchMappingSyncedFile {
     path: string;
-    id: number;
-};
+    uploadedFileID: number;
+    collectionID: number;
+}
 
-interface Mapping {
+export interface WatchMapping {
     rootFolderName: string;
     uploadStrategy: number;
     folderPath: string;
-    files: FileMapping[];
+    syncedFiles: WatchMappingSyncedFile[];
+    ignoredFiles: string[];
 }
 
 export interface WatchStoreType {
-    mappings: Mapping[];
+    mappings: WatchMapping[];
 }
 
 export enum FILE_PATH_TYPE {
@@ -47,3 +49,22 @@ export const FILE_PATH_KEYS: {
     [FILE_PATH_TYPE.ZIPS]: 'zipPaths',
     [FILE_PATH_TYPE.FILES]: 'filePaths',
 };
+
+export interface SafeStorageStoreType {
+    encryptionKey: string;
+}
+
+export interface UserPreferencesType {
+    hideDockIcon: boolean;
+    skipAppVersion: string;
+    muteUpdateNotificationVersion: string;
+}
+
+export interface AppUpdateInfo {
+    autoUpdatable: boolean;
+    version: string;
+}
+
+export interface GetFeatureFlagResponse {
+    desktopCutoffVersion?: string;
+}

@@ -1,8 +1,7 @@
 import { ipcRenderer } from 'electron/renderer';
-import { logError } from '../utils/logging';
-import { keysStore, uploadStatusStore, watchStore } from '../services/store';
+import { logError } from '../services/logging';
 
-export const selectRootDirectory = async () => {
+export const selectRootDirectory = async (): Promise<string> => {
     try {
         return await ipcRenderer.invoke('select-dir');
     } catch (e) {
@@ -10,12 +9,17 @@ export const selectRootDirectory = async () => {
     }
 };
 
-export const clearElectronStore = () => {
+export const getAppVersion = async (): Promise<string> => {
     try {
-        watchStore.clear();
-        uploadStatusStore.clear();
-        keysStore.clear();
+        return await ipcRenderer.invoke('get-app-version');
     } catch (e) {
-        logError(e, 'error while clearing electron store');
+        logError(e, 'failed to get release version');
+        throw e;
     }
 };
+
+export {
+    logToDisk,
+    openLogDirectory,
+    getSentryUserID,
+} from '../services/logging';

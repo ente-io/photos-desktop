@@ -2,12 +2,13 @@ import { FILE_STREAM_CHUNK_SIZE } from '../config';
 import path from 'path';
 import * as fs from 'promise-fs';
 import { ElectronFile } from '../types';
-import { logError } from '../utils/logging';
 import StreamZip from 'node-stream-zip';
 import { Readable } from 'stream';
+import { logError } from './logging';
+import { existsSync } from 'fs';
 
 // https://stackoverflow.com/a/63111390
-export const getFilesFromDir = async (dirPath: string) => {
+export const getDirFilePaths = async (dirPath: string) => {
     if (!(await fs.stat(dirPath)).isDirectory()) {
         return [dirPath];
     }
@@ -17,7 +18,7 @@ export const getFilesFromDir = async (dirPath: string) => {
 
     for (const filePath of filePaths) {
         const absolute = path.join(dirPath, filePath);
-        files = files.concat(await getFilesFromDir(absolute));
+        files = [...files, ...(await getDirFilePaths(absolute))];
     }
 
     return files;
@@ -28,22 +29,29 @@ export const getFileStream = async (filePath: string) => {
     let offset = 0;
     const readableStream = new ReadableStream<Uint8Array>({
         async pull(controller) {
-            const buff = new Uint8Array(FILE_STREAM_CHUNK_SIZE);
-
-            // original types were not working correctly
-            const bytesRead = (await fs.read(
-                file,
-                buff,
-                0,
-                FILE_STREAM_CHUNK_SIZE,
-                offset
-            )) as unknown as number;
-            offset += bytesRead;
-            if (bytesRead === 0) {
-                controller.close();
-            } else {
-                controller.enqueue(buff);
+            try {
+                const buff = new Uint8Array(FILE_STREAM_CHUNK_SIZE);
+                // original types were not working correctly
+                const bytesRead = (await fs.read(
+                    file,
+                    buff,
+                    0,
+                    FILE_STREAM_CHUNK_SIZE,
+                    offset
+                )) as unknown as number;
+                offset += bytesRead;
+                if (bytesRead === 0) {
+                    controller.close();
+                    await fs.close(file);
+                } else {
+                    controller.enqueue(buff.slice(0, bytesRead));
+                }
+            } catch (e) {
+                await fs.close(file);
             }
+        },
+        async cancel() {
+            await fs.close(file);
         },
     });
     return readableStream;
@@ -57,13 +65,22 @@ export async function getElectronFile(filePath: string): Promise<ElectronFile> {
         size: fileStats.size,
         lastModified: fileStats.mtime.valueOf(),
         stream: async () => {
+            if (!existsSync(filePath)) {
+                throw new Error('electronFile does not exist');
+            }
             return await getFileStream(filePath);
         },
         blob: async () => {
+            if (!existsSync(filePath)) {
+                throw new Error('electronFile does not exist');
+            }
             const blob = await fs.readFile(filePath);
             return new Blob([new Uint8Array(blob)]);
         },
         arrayBuffer: async () => {
+            if (!existsSync(filePath)) {
+                throw new Error('electronFile does not exist');
+            }
             const blob = await fs.readFile(filePath);
             return new Uint8Array(blob);
         },
@@ -82,6 +99,7 @@ export const getValidPaths = (paths: string[]) => {
         }
     });
 };
+
 export const getZipFileStream = async (
     zip: StreamZip.StreamZipAsync,
     filePath: string
@@ -90,31 +108,50 @@ export const getZipFileStream = async (
     const done = {
         current: false,
     };
+    const inProgress = {
+        current: false,
+    };
     let resolveObj: (value?: any) => void = null;
     let rejectObj: (reason?: any) => void = null;
     stream.on('readable', () => {
-        if (resolveObj) {
-            const chunk = stream.read(FILE_STREAM_CHUNK_SIZE) as Buffer;
-
-            if (chunk) {
-                resolveObj(new Uint8Array(chunk));
-                resolveObj = null;
+        try {
+            if (resolveObj) {
+                inProgress.current = true;
+                const chunk = stream.read(FILE_STREAM_CHUNK_SIZE) as Buffer;
+                if (chunk) {
+                    resolveObj(new Uint8Array(chunk));
+                    resolveObj = null;
+                }
+                inProgress.current = false;
             }
+        } catch (e) {
+            rejectObj(e);
         }
     });
     stream.on('end', () => {
-        done.current = true;
+        try {
+            done.current = true;
+            if (resolveObj && !inProgress.current) {
+                resolveObj(null);
+                resolveObj = null;
+            }
+        } catch (e) {
+            rejectObj(e);
+        }
     });
     stream.on('error', (e) => {
-        done.current = true;
-
-        if (rejectObj) {
+        try {
+            done.current = true;
+            if (rejectObj) {
+                rejectObj(e);
+                rejectObj = null;
+            }
+        } catch (e) {
             rejectObj(e);
-            rejectObj = null;
         }
     });
 
-    const readStreamData = () => {
+    const readStreamData = async () => {
         return new Promise<Uint8Array>((resolve, reject) => {
             const chunk = stream.read(FILE_STREAM_CHUNK_SIZE) as Buffer;
 
@@ -138,7 +175,7 @@ export const getZipFileStream = async (
                     controller.close();
                 }
             } catch (e) {
-                logError(e, 'stream reading failed');
+                logError(e, 'readableStream pull failed');
                 controller.close();
             }
         },
@@ -146,7 +183,7 @@ export const getZipFileStream = async (
     return readableStream;
 };
 
-export async function doesFolderExists(dirPath: string) {
+export async function isFolder(dirPath: string) {
     return await fs
         .stat(dirPath)
         .then((stats) => {
@@ -155,16 +192,9 @@ export async function doesFolderExists(dirPath: string) {
         .catch(() => false);
 }
 
-export async function doesPathExists(dirPath: string) {
-    return await fs
-        .stat(dirPath)
-        .then((stats: fs.Stats) => {
-            return stats.isFile() || stats.isDirectory();
-        })
-        .catch(() => false);
-}
-
-export const convertBrowserStreamToNode = (fileStream: any) => {
+export const convertBrowserStreamToNode = (
+    fileStream: ReadableStream<Uint8Array>
+) => {
     const reader = fileStream.getReader();
     const rs = new Readable();
 
@@ -182,24 +212,22 @@ export const convertBrowserStreamToNode = (fileStream: any) => {
     return rs;
 };
 
-export async function createDirectory(dirPath: string) {
-    await fs.mkdir(dirPath);
-}
-
-export async function renameDirectory(oldDirPath: string, newDirPath: string) {
-    await fs.rename(oldDirPath, newDirPath);
-}
-
-export async function writeFile(filePath: string, fileData: any) {
-    await fs.writeFile(filePath, fileData);
-}
-
-export function writeStream(filePath: string, fileStream: any) {
+export async function writeStream(
+    filePath: string,
+    fileStream: ReadableStream<Uint8Array>
+) {
     const writeable = fs.createWriteStream(filePath);
     const readable = convertBrowserStreamToNode(fileStream);
     readable.pipe(writeable);
+    await new Promise((resolve, reject) => {
+        writeable.on('finish', resolve);
+        writeable.on('error', reject);
+    });
 }
 
 export async function readTextFile(filePath: string) {
-    await fs.readFile(filePath, 'utf-8');
+    if (!existsSync(filePath)) {
+        throw new Error('File does not exist');
+    }
+    return await fs.readFile(filePath, 'utf-8');
 }
