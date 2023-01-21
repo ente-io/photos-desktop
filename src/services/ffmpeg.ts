@@ -1,12 +1,11 @@
 import pathToFfmpeg from 'ffmpeg-static';
+const shellescape = require('any-shell-escape');
 import util from 'util';
 import log from 'electron-log';
 import { readFile, rmSync, writeFile } from 'promise-fs';
 import { logErrorSentry } from './sentry';
 import { generateTempFilePath, getTempDirPath } from '../utils/temp';
 import { existsSync } from 'fs';
-
-const shellescape = require('any-shell-escape');
 
 const execAsync = util.promisify(require('child_process').exec);
 
