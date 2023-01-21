@@ -25,6 +25,7 @@ import {
     getWatchMappings,
 } from './api/watch';
 import { getEncryptionKey, setEncryptionKey } from './api/safeStorage';
+import { clearElectronStore } from './api/electronStore';
 import { openDiskCache, deleteDiskCache } from './api/cache';
 import {
     checkExistsAndCreateCollectionDir,
@@ -69,6 +70,7 @@ windowObject['ElectronAPIs'] = {
     saveStreamToDisk,
     saveFileToDisk,
     selectRootDirectory,
+    clearElectronStore,
     sendNotification,
     showOnTray,
     reloadWindow,
