@@ -7,7 +7,6 @@ import {
 } from '../services/fs';
 import { logError } from '../services/logging';
 import { ElectronFile } from '../types';
-import fs from 'fs';
 import { liveTranscodeVideoForStreaming } from '../services/ffmpeg-live-transcoding';
 
 export async function runFFmpegCmd(
@@ -47,15 +46,10 @@ export async function runFFmpegCmd(
     }
 }
 
-export async function liveTranscodeVideo(inputFile: File | ElectronFile) {
-    let inputFileStream: NodeJS.ReadableStream;
-    if (!existsSync(inputFile.path)) {
-        inputFileStream = convertWebStreamToNode(await inputFile.stream());
-    } else {
-        inputFileStream = fs.createReadStream(inputFile.path);
-    }
-
+export async function liveTranscodeVideo(
+    inputFileStream: ReadableStream<Uint8Array>
+) {
     return convertNodeStreamToWeb(
-        liveTranscodeVideoForStreaming(inputFileStream)
+        liveTranscodeVideoForStreaming(convertWebStreamToNode(inputFileStream))
     );
 }
