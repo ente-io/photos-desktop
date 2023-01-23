@@ -862,6 +862,11 @@ buffer-from@^1.0.0:
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.2.tgz#2b146a6fd72e80b4f55d255f35ed59a3a9a41bd5"
   integrity sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==
 
+buffer-json@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/buffer-json/-/buffer-json-1.0.0.tgz#39f5ca5e00cc44ed8463ae422265ff083ef17b3f"
+  integrity sha512-cF/zfC4jetmaOeeJuVYErpaCNzi8mgpTwXnW8sksyk6soXfDy6lK+Ra9ExGnB5OP8mieVHIo5IU0po74FR69+Q==
+
 buffer@^5.1.0:
   version "5.7.1"
   resolved "https://registry.yarnpkg.com/buffer/-/buffer-5.7.1.tgz#ba62e7c13133053582197160851a8f648e99eed0"
@@ -1453,6 +1458,14 @@ electron-download@^4.1.1:
     rc "^1.2.1"
     semver "^5.4.1"
     sumchecker "^2.0.2"
+
+electron-ipc-stream@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/electron-ipc-stream/-/electron-ipc-stream-0.2.0.tgz#07b374e7e26e619de56d5caf99f8ba0a93209c06"
+  integrity sha512-rRd/po1WRNxmGmhQ0QcIx4RL+cCaTKPknJcg7cRdz8FTIhlBU8cnzZQNKnb++esOKb05wbO9uYsH2xvRlBg0Jg==
+  dependencies:
+    buffer-json "^1.0.0"
+    is-electron-renderer "^2.0.0"
 
 electron-log@^4.3.5:
   version "4.4.8"
@@ -2361,6 +2374,11 @@ is-core-module@^2.9.0:
   integrity sha512-+5FPy5PnwmO3lvfMb0AsoPaBG+5KHUI0wYFXOtYPnVVVspTFUuMZNfNaNVRt3FZadstu2c8x23vykRW/NBoU6A==
   dependencies:
     has "^1.0.3"
+
+is-electron-renderer@^2.0.0:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/is-electron-renderer/-/is-electron-renderer-2.0.1.tgz#a469d056f975697c58c98c6023eb0aa79af895a2"
+  integrity sha512-pRlQnpaCFhDVPtkXkP+g9Ybv/CjbiQDjnKFQTEjpBfDKeV6dRDBczuFRDpM6DVfk2EjpMS8t5kwE5jPnqYl3zA==
 
 is-extglob@^2.1.1:
   version "2.1.1"
