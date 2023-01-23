@@ -105,6 +105,12 @@ export const getZipFileStream = async (
     filePath: string
 ) => {
     const stream = await zip.stream(filePath);
+    return convertNodeStreamToWeb(stream);
+};
+
+export const convertNodeStreamToWeb = (
+    stream: NodeJS.ReadableStream
+): ReadableStream<Uint8Array> => {
     const done = {
         current: false,
     };
@@ -192,7 +198,7 @@ export async function isFolder(dirPath: string) {
         .catch(() => false);
 }
 
-export const convertBrowserStreamToNode = (
+export const convertWebStreamToNode = (
     fileStream: ReadableStream<Uint8Array>
 ) => {
     const reader = fileStream.getReader();
@@ -217,7 +223,7 @@ export async function writeStream(
     fileStream: ReadableStream<Uint8Array>
 ) {
     const writeable = fs.createWriteStream(filePath);
-    const readable = convertBrowserStreamToNode(fileStream);
+    const readable = convertWebStreamToNode(fileStream);
     readable.pipe(writeable);
     await new Promise((resolve, reject) => {
         writeable.on('finish', resolve);

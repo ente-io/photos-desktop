@@ -1,8 +1,14 @@
 import { ipcRenderer } from 'electron';
 import { existsSync } from 'fs';
-import { writeStream } from '../services/fs';
+import {
+    convertWebStreamToNode,
+    convertNodeStreamToWeb,
+    writeStream,
+} from '../services/fs';
 import { logError } from '../services/logging';
 import { ElectronFile } from '../types';
+import fs from 'fs';
+import { liveTranscodeVideoForStreaming } from '../services/ffmpeg-live-transcoding';
 
 export async function runFFmpegCmd(
     cmd: string[],
@@ -39,4 +45,17 @@ export async function runFFmpegCmd(
             }
         }
     }
+}
+
+export async function liveTranscodeVideo(inputFile: File | ElectronFile) {
+    let inputFileStream: NodeJS.ReadableStream;
+    if (!existsSync(inputFile.path)) {
+        inputFileStream = convertWebStreamToNode(await inputFile.stream());
+    } else {
+        inputFileStream = fs.createReadStream(inputFile.path);
+    }
+
+    return convertNodeStreamToWeb(
+        liveTranscodeVideoForStreaming(inputFileStream)
+    );
 }

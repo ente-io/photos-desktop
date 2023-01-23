@@ -55,7 +55,7 @@ import {
     setupRendererProcessStatsLogger,
     logRendererProcessMemoryUsage,
 } from './utils/processStats';
-import { runFFmpegCmd } from './api/ffmpeg';
+import { runFFmpegCmd, liveTranscodeVideo } from './api/ffmpeg';
 
 fixHotReloadNext12();
 setupLogging();
@@ -111,4 +111,5 @@ windowObject['ElectronAPIs'] = {
     muteUpdateNotification,
     generateImageThumbnail,
     logRendererProcessMemoryUsage,
+    liveTranscodeVideo,
 };
