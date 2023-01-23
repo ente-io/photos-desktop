@@ -11,6 +11,10 @@ export function liveTranscodeVideoForStreaming(
     const ffmpeg = spawn(getFFmpegStaticPath(), [
         '-i',
         'pipe:0',
+        '-f',
+        'lavfi',
+        '-i',
+        'anullsrc=cl=mono',
         '-preset',
         'ultrafast',
         '-movflags',
@@ -19,6 +23,7 @@ export function liveTranscodeVideoForStreaming(
         '52',
         '-acodec',
         'aac',
+        '-shortest',
         '-vcodec',
         'libx264',
         '-filter:v',
