@@ -46,10 +46,14 @@ export async function runFFmpegCmd(
     }
 }
 
-export async function liveTranscodeVideo(
+export function liveTranscodeVideo(
     inputFileStream: ReadableStream<Uint8Array>
 ) {
-    return convertNodeStreamToWeb(
-        liveTranscodeVideoForStreaming(convertWebStreamToNode(inputFileStream))
+    const output = liveTranscodeVideoForStreaming(
+        convertWebStreamToNode(inputFileStream)
     );
+    return {
+        stream: convertNodeStreamToWeb(output.stream),
+        durationRef: output.durationRef,
+    };
 }
