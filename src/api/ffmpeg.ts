@@ -53,7 +53,7 @@ export function liveTranscodeVideo(
         convertWebStreamToNode(inputFileStream)
     );
     return {
-        stream: convertNodeStreamToWeb(output.stream),
+        stream: convertNodeStreamToWeb(output.stream, { dontChunk: true }),
         durationRef: output.durationRef,
     };
 }

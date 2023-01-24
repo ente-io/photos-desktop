@@ -109,7 +109,8 @@ export const getZipFileStream = async (
 };
 
 export const convertNodeStreamToWeb = (
-    stream: NodeJS.ReadableStream
+    stream: NodeJS.ReadableStream,
+    { dontChunk } = { dontChunk: false }
 ): ReadableStream<Uint8Array> => {
     const done = {
         current: false,
@@ -123,7 +124,12 @@ export const convertNodeStreamToWeb = (
         try {
             if (resolveObj) {
                 inProgress.current = true;
-                const chunk = stream.read(FILE_STREAM_CHUNK_SIZE) as Buffer;
+
+                const chunk = (
+                    dontChunk
+                        ? stream.read()
+                        : stream.read(FILE_STREAM_CHUNK_SIZE)
+                ) as Buffer;
                 if (chunk) {
                     resolveObj(new Uint8Array(chunk));
                     resolveObj = null;
