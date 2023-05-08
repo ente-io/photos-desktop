@@ -15,6 +15,7 @@ import path from 'path';
 import { getDirFilePaths } from '../services/fs';
 import {
     convertHEIC,
+    extractImageDimensions,
     generateImageThumbnail,
 } from '../services/imageProcessor';
 import {
@@ -154,4 +155,8 @@ export default function setupIpcComs(
             return generateImageThumbnail(fileData, maxDimension, maxSize);
         }
     );
+
+    ipcMain.handle('extract-image-dimensions', (_, fileData) => {
+        return extractImageDimensions(fileData);
+    });
 }

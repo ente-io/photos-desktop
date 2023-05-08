@@ -10,6 +10,7 @@ import { isDev } from '../utils/common';
 import path from 'path';
 import log from 'electron-log';
 import { CustomErrors } from '../constants/errors';
+import { Dimensions } from '../api/imageProcessor';
 const shellescape = require('any-shell-escape');
 
 const asyncExec = util.promisify(exec);
@@ -68,6 +69,25 @@ const IMAGE_MAGICK_THUMBNAIL_GENERATE_COMMAND_TEMPLATE = [
     '0x.5',
     '-quality',
     QUALITY_PLACEHOLDER,
+    OUTPUT_PATH_PLACEHOLDER,
+];
+
+const IMAGE_MAGICK_EXTRACT_DIMENSIONS_COMMAND_TEMPLATE = [
+    IMAGE_MAGICK_PLACEHOLDER,
+    INPUT_PATH_PLACEHOLDER,
+    '-format',
+    '%wx%h',
+    OUTPUT_PATH_PLACEHOLDER,
+];
+
+const SIPS_EXTRACT_DIMENSIONS_COMMAND_TEMPLATE = [
+    'sips',
+    '-g',
+    'pixelWidth',
+    '-g',
+    'pixelHeight',
+    INPUT_PATH_PLACEHOLDER,
+    '--out',
     OUTPUT_PATH_PLACEHOLDER,
 ];
 
@@ -217,6 +237,7 @@ async function runThumbnailGenerationCommand(
     log.info('running thumbnail generation command: ' + escapedCmd);
     await asyncExec(escapedCmd);
 }
+
 function constructThumbnailGenerationCommand(
     inputFilePath: string,
     tempOutputFilePath: string,
@@ -275,4 +296,80 @@ function constructThumbnailGenerationCommand(
         throw Error(CustomErrors.INVALID_OS(process.platform));
     }
     return thumbnailGenerationCmd;
+}
+
+export async function extractImageDimensions(
+    inputFilePath: string
+): Promise<Dimensions> {
+    try {
+        const output = await runExtractImageDimensionsCommand(inputFilePath);
+        return parseDimensions(output.stdout);
+    } catch (e) {
+        logErrorSentry(e, 'extract image dimensions failed');
+        throw e;
+    }
+}
+
+async function runExtractImageDimensionsCommand(inputFilePath: string) {
+    const thumbnailGenerationCmd: string[] =
+        constructDimensionExtractionCommand(inputFilePath);
+    const escapedCmd = shellescape(thumbnailGenerationCmd);
+    log.info('running dimension extraction command: ' + escapedCmd);
+    return await asyncExec(escapedCmd);
+}
+
+function constructDimensionExtractionCommand(inputFilePath: string) {
+    let dimensionExtractionCmd: string[];
+    if (isPlatform('mac')) {
+        dimensionExtractionCmd = SIPS_EXTRACT_DIMENSIONS_COMMAND_TEMPLATE.map(
+            (cmdPart) => {
+                if (cmdPart === INPUT_PATH_PLACEHOLDER) {
+                    return inputFilePath;
+                }
+                return cmdPart;
+            }
+        );
+    } else if (isPlatform('linux')) {
+        dimensionExtractionCmd =
+            IMAGE_MAGICK_EXTRACT_DIMENSIONS_COMMAND_TEMPLATE.map((cmdPart) => {
+                if (cmdPart === IMAGE_MAGICK_PLACEHOLDER) {
+                    return getImageMagickStaticPath();
+                }
+                if (cmdPart === INPUT_PATH_PLACEHOLDER) {
+                    return inputFilePath;
+                }
+                return cmdPart;
+            });
+    } else {
+        throw Error(CustomErrors.INVALID_OS(process.platform));
+    }
+    return dimensionExtractionCmd;
+}
+
+function parseDimensions(dimensionsString: string): Dimensions {
+    let dimensions: Dimensions;
+    if (isPlatform('mac')) {
+        dimensions = parseDimensionsMac(dimensionsString);
+    } else if (isPlatform('linux')) {
+        dimensions = parseDimensionsLinux(dimensionsString);
+    } else {
+        throw Error(CustomErrors.INVALID_OS(process.platform));
+    }
+    return dimensions;
+}
+
+function parseDimensionsMac(dimensionsString: string): Dimensions {
+    const lines = dimensionsString.trim().split('\n');
+    const widthLine = lines.find((line) => line.includes('pixelWidth'));
+    const heightLine = lines.find((line) => line.includes('pixelHeight'));
+
+    const width = parseInt(widthLine.split(':')[1].trim());
+    const height = parseInt(heightLine.split(':')[1].trim());
+
+    return { width, height };
+}
+
+function parseDimensionsLinux(dimensionsString: string): Dimensions {
+    const [width, height] = dimensionsString.trim().split('x');
+    return { width: parseInt(width), height: parseInt(height) };
 }

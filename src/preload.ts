@@ -46,7 +46,11 @@ import {
 } from './api/common';
 import { fixHotReloadNext12 } from './utils/preload';
 import { isFolder, getDirFiles } from './api/fs';
-import { convertHEIC, generateImageThumbnail } from './api/imageProcessor';
+import {
+    convertHEIC,
+    generateImageThumbnail,
+    extractImageDimensions,
+} from './api/imageProcessor';
 import { setupLogging } from './utils/logging';
 import {
     setupRendererProcessStatsLogger,
@@ -105,4 +109,5 @@ windowObject['ElectronAPIs'] = {
     logRendererProcessMemoryUsage,
     registerForegroundEventListener,
     openDirectory,
+    extractImageDimensions,
 };

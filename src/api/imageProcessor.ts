@@ -6,6 +6,11 @@ import { logError } from '../services/logging';
 import { ElectronFile } from '../types';
 import { isPlatform } from '../utils/common/platform';
 
+export interface Dimensions {
+    width: number;
+    height: number;
+}
+
 export async function convertHEIC(fileData: Uint8Array): Promise<Uint8Array> {
     if (isPlatform('windows')) {
         throw Error(CustomErrors.WINDOWS_NATIVE_IMAGE_PROCESSING_NOT_SUPPORTED);
@@ -48,6 +53,44 @@ export async function generateImageThumbnail(
             maxSize
         );
         return thumbnail;
+    } finally {
+        if (createdTempInputFile) {
+            try {
+                await ipcRenderer.invoke('remove-temp-file', inputFilePath);
+            } catch (e) {
+                logError(e, 'failed to deleteTempFile');
+            }
+        }
+    }
+}
+
+export async function extractImageDimensions(
+    inputFile: File | ElectronFile
+): Promise<Dimensions> {
+    let inputFilePath = null;
+    let createdTempInputFile = null;
+    try {
+        if (isPlatform('windows')) {
+            throw Error(
+                CustomErrors.WINDOWS_NATIVE_IMAGE_PROCESSING_NOT_SUPPORTED
+            );
+        }
+        if (!existsSync(inputFile.path)) {
+            const tempFilePath = await ipcRenderer.invoke(
+                'get-temp-file-path',
+                inputFile.name
+            );
+            await writeStream(tempFilePath, await inputFile.stream());
+            inputFilePath = tempFilePath;
+            createdTempInputFile = true;
+        } else {
+            inputFilePath = inputFile.path;
+        }
+        const dimensions = await ipcRenderer.invoke(
+            'extract-image-dimensions',
+            inputFilePath
+        );
+        return dimensions;
     } finally {
         if (createdTempInputFile) {
             try {
