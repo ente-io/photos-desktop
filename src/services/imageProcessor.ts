@@ -11,6 +11,7 @@ import path from 'path';
 import log from 'electron-log';
 import { CustomErrors } from '../constants/errors';
 import { Dimensions } from '../api/imageProcessor';
+import { logToDisk } from './logging';
 const shellescape = require('any-shell-escape');
 
 const asyncExec = util.promisify(exec);
@@ -347,6 +348,7 @@ function constructDimensionExtractionCommand(inputFilePath: string) {
 }
 
 function parseDimensions(dimensionsString: string): Dimensions {
+    logToDisk('dimensionsString: ' + dimensionsString);
     let dimensions: Dimensions;
     if (isPlatform('mac')) {
         dimensions = parseDimensionsMac(dimensionsString);
