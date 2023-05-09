@@ -7,7 +7,7 @@ import { ElectronFile } from '../types';
 export async function runFFmpegCmd(
     cmd: string[],
     inputFile: File | ElectronFile,
-    outputFileName: string
+    outputFileName?: string
 ) {
     let inputFilePath = null;
     let createdTempInputFile = null;

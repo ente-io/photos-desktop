@@ -20,7 +20,7 @@ function getFFmpegStaticPath() {
 export async function runFFmpegCmd(
     cmd: string[],
     inputFilePath: string,
-    outputFileName: string
+    outputFileName?: string
 ) {
     let tempOutputFilePath: string;
     try {
@@ -40,9 +40,11 @@ export async function runFFmpegCmd(
         const escapedCmd = shellescape(cmd);
         log.info('running ffmpeg command', escapedCmd);
         const startTime = Date.now();
-        await execAsync(escapedCmd);
-        if (!existsSync(tempOutputFilePath)) {
-            throw new Error('ffmpeg output file not found');
+        const resp = await execAsync(escapedCmd);
+        if (outputFileName) {
+            if (!existsSync(tempOutputFilePath)) {
+                throw new Error('ffmpeg output file not found');
+            }
         }
         log.info(
             'ffmpeg command execution time ',
@@ -50,8 +52,14 @@ export async function runFFmpegCmd(
             Date.now() - startTime,
             'ms'
         );
-
-        const outputFile = await readFile(tempOutputFilePath);
+        let outputFile;
+        if (outputFileName) {
+            outputFile = await readFile(tempOutputFilePath);
+        } else {
+            // ffmpeg logs are written to stderr
+            // convert the log to a file
+            outputFile = Buffer.from(resp.stderr);
+        }
         return new Uint8Array(outputFile);
     } catch (e) {
         logErrorSentry(e, 'ffmpeg run command error');
