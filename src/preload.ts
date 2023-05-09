@@ -29,7 +29,6 @@ import { clearElectronStore } from './api/electronStore';
 import { openDiskCache, deleteDiskCache } from './api/cache';
 import {
     checkExistsAndCreateDir,
-    checkExistsAndRename,
     saveStreamToDisk,
     saveFileToDisk,
     getExportRecord,
@@ -45,7 +44,13 @@ import {
     openDirectory,
 } from './api/common';
 import { fixHotReloadNext12 } from './utils/preload';
-import { isFolder, getDirFiles } from './api/fs';
+import {
+    isFolder,
+    getDirFiles,
+    moveFile,
+    deleteFolder,
+    rename,
+} from './api/fs';
 import {
     convertHEIC,
     generateImageThumbnail,
@@ -67,7 +72,6 @@ const windowObject: any = window;
 windowObject['ElectronAPIs'] = {
     exists,
     checkExistsAndCreateDir,
-    checkExistsAndRename,
     saveStreamToDisk,
     saveFileToDisk,
     selectRootDirectory,
@@ -110,4 +114,7 @@ windowObject['ElectronAPIs'] = {
     registerForegroundEventListener,
     openDirectory,
     extractImageDimensions,
+    moveFile,
+    deleteFolder,
+    rename,
 };
