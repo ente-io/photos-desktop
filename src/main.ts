@@ -14,11 +14,13 @@ import {
     handleDockIconHideOnAutoLaunch,
     handleUpdates,
     logSystemInfo,
+    handleExternalLinks,
 } from './utils/main';
 import { initSentry } from './services/sentry';
 import { setupLogging } from './utils/logging';
 import { isDev } from './utils/common';
 import { setupMainProcessStatsLogger } from './utils/processStats';
+import { setupAppEventEmitter } from './utils/events';
 
 let mainWindow: BrowserWindow;
 
@@ -79,7 +81,9 @@ if (!gotTheLock) {
         setupIpcComs(tray, mainWindow, watcher);
         handleUpdates(mainWindow);
         handleDownloads(mainWindow);
+        handleExternalLinks(mainWindow);
         addAllowOriginHeader(mainWindow);
+        setupAppEventEmitter(mainWindow);
     });
 
     app.on('before-quit', () => setIsAppQuitting(true));

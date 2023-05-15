@@ -9,7 +9,6 @@ import {
     shell,
 } from 'electron';
 import { createWindow } from './createWindow';
-import { buildContextMenu } from './menu';
 import { getSentryUserID, logErrorSentry } from '../services/sentry';
 import chokidar from 'chokidar';
 import path from 'path';
@@ -39,10 +38,6 @@ export default function setupIpcComs(
         if (result.filePaths && result.filePaths.length > 0) {
             return result.filePaths[0]?.split(path.sep)?.join(path.posix.sep);
         }
-    });
-
-    ipcMain.on('update-tray', (_, args) => {
-        tray.setContextMenu(buildContextMenu(mainWindow, args));
     });
 
     ipcMain.on('send-notification', (_, args) => {
@@ -116,6 +111,10 @@ export default function setupIpcComs(
 
     ipcMain.handle('open-log-dir', () => {
         shell.openPath(app.getPath('logs'));
+    });
+
+    ipcMain.handle('open-dir', (_, dirPath) => {
+        shell.openPath(path.normalize(dirPath));
     });
 
     ipcMain.on('update-and-restart', () => {

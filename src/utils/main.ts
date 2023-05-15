@@ -11,6 +11,7 @@ import { getHideDockIconPreference } from '../services/userPreference';
 import { setupAutoUpdater } from '../services/appUpdater';
 import ElectronLog from 'electron-log';
 import os from 'os';
+import { isPlatform } from './common/platform';
 
 export function handleUpdates(mainWindow: BrowserWindow) {
     if (!isDev) {
@@ -84,18 +85,6 @@ export function setupNextElectronServe() {
     });
 }
 
-export function isPlatform(platform: 'mac' | 'windows' | 'linux') {
-    if (process.platform === 'darwin') {
-        return platform === 'mac';
-    } else if (process.platform === 'win32') {
-        return platform === 'windows';
-    } else if (process.platform === 'linux') {
-        return platform === 'linux';
-    } else {
-        return false;
-    }
-}
-
 export async function handleDockIconHideOnAutoLaunch() {
     const shouldHideDockIcon = getHideDockIconPreference();
     const wasAutoLaunched = await autoLauncher.wasAutoLaunched();
@@ -114,4 +103,15 @@ export function logSystemInfo() {
     const osName = process.platform;
     const osRelease = os.release();
     ElectronLog.info({ osName, osRelease, systemVersion });
+}
+
+export function handleExternalLinks(mainWindow: BrowserWindow) {
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        if (!url.startsWith(PROD_HOST_URL)) {
+            require('electron').shell.openExternal(url);
+            return { action: 'deny' };
+        } else {
+            return { action: 'allow' };
+        }
+    });
 }

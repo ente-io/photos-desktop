@@ -2,10 +2,10 @@ import {
     registerUpdateEventListener,
     reloadWindow,
     sendNotification,
-    showOnTray,
     updateAndRestart,
     skipAppUpdate,
     muteUpdateNotification,
+    registerForegroundEventListener,
 } from './api/system';
 import {
     showUploadDirsDialog,
@@ -28,16 +28,9 @@ import { getEncryptionKey, setEncryptionKey } from './api/safeStorage';
 import { clearElectronStore } from './api/electronStore';
 import { openDiskCache, deleteDiskCache } from './api/cache';
 import {
-    checkExistsAndCreateCollectionDir,
-    checkExistsAndRename,
+    checkExistsAndCreateDir,
     saveStreamToDisk,
     saveFileToDisk,
-    registerResumeExportListener,
-    registerStopExportListener,
-    registerPauseExportListener,
-    registerRetryFailedExportListener,
-    getExportRecord,
-    setExportRecord,
     exists,
 } from './api/export';
 import {
@@ -46,9 +39,17 @@ import {
     openLogDirectory,
     getSentryUserID,
     getAppVersion,
+    openDirectory,
 } from './api/common';
 import { fixHotReloadNext12 } from './utils/preload';
-import { isFolder, getDirFiles } from './api/fs';
+import {
+    isFolder,
+    getDirFiles,
+    moveFile,
+    deleteFolder,
+    rename,
+    readTextFile,
+} from './api/fs';
 import { convertHEIC, generateImageThumbnail } from './api/imageProcessor';
 import { setupLogging } from './utils/logging';
 import {
@@ -65,21 +66,14 @@ const windowObject: any = window;
 
 windowObject['ElectronAPIs'] = {
     exists,
-    checkExistsAndCreateCollectionDir,
-    checkExistsAndRename,
+    checkExistsAndCreateDir,
     saveStreamToDisk,
     saveFileToDisk,
     selectRootDirectory,
     clearElectronStore,
     sendNotification,
-    showOnTray,
     reloadWindow,
-    registerResumeExportListener,
-    registerStopExportListener,
-    registerPauseExportListener,
-    registerRetryFailedExportListener,
-    getExportRecord,
-    setExportRecord,
+    readTextFile,
     showUploadFilesDialog,
     showUploadDirsDialog,
     getPendingUploads,
@@ -112,4 +106,9 @@ windowObject['ElectronAPIs'] = {
     generateImageThumbnail,
     logRendererProcessMemoryUsage,
     liveTranscodeVideo,
+    registerForegroundEventListener,
+    openDirectory,
+    moveFile,
+    deleteFolder,
+    rename,
 };
