@@ -38,6 +38,7 @@ export function liveTranscodeVideoForStreaming(
     // get video duration from ffmpeg
     const durationRef = { duration: 0 };
     ffmpeg.stderr.on('data', (data) => {
+        console.log('ffmpeg', data.toString());
         const str = data.toString();
         const match = str.match(/Duration: (\d{2}):(\d{2}):(\d{2})/);
         if (match) {
