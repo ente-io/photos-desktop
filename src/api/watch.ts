@@ -94,12 +94,22 @@ export function registerWatcherFunctions(
 ) {
     ipcRenderer.removeAllListeners('watch-add');
     ipcRenderer.removeAllListeners('watch-change');
+    ipcRenderer.removeAllListeners('watch-unlink');
     ipcRenderer.removeAllListeners('watch-unlink-dir');
     ipcRenderer.on('watch-add', async (_, filePath: string) => {
         filePath = filePath.split(path.sep).join(path.posix.sep);
 
         await addFile(await getElectronFile(filePath));
     });
+
+    ipcRenderer.on('watch-change', async (_, filePath: string) => {
+        filePath = path.normalize(
+            filePath.split(path.sep).join(path.posix.sep)
+        );
+        await removeFile(filePath);
+        await addFile(await getElectronFile(filePath));
+    });
+
     ipcRenderer.on('watch-unlink', async (_, filePath: string) => {
         filePath = filePath.split(path.sep).join(path.posix.sep);
 
