@@ -4,7 +4,7 @@ import { existsSync, readFile, writeFile, unlink } from 'promise-fs';
 import path from 'path';
 import { LimitedCache } from '../types/cache';
 
-const MAX_CACHE_SIZE = 1000 * 1000 * 1000; // 1GB
+const MAX_CACHE_SIZE = 10000 * 1000 * 1000; // 10GB
 
 export class DiskCache implements LimitedCache {
     constructor(private cacheBucketDir: string) {}
