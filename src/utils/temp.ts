@@ -1,6 +1,6 @@
 import { app } from 'electron';
 import path from 'path';
-import { RootFS, RootPromiseFS } from '../services/fs';
+import { existsSync, mkdir } from '../services/sanitizedFS';
 
 const ENTE_TEMP_DIRECTORY = 'ente';
 
@@ -9,8 +9,8 @@ const CHARACTERS =
 
 export async function getTempDirPath() {
     const tempDirPath = path.join(app.getPath('temp'), ENTE_TEMP_DIRECTORY);
-    if (!RootFS.existsSync(tempDirPath)) {
-        await RootPromiseFS.mkdir(tempDirPath);
+    if (!existsSync(tempDirPath)) {
+        await mkdir(tempDirPath);
     }
     return tempDirPath;
 }
@@ -33,6 +33,6 @@ export async function generateTempFilePath(formatSuffix: string) {
         const tempDirPath = await getTempDirPath();
         const namePrefix = generateTempName(10);
         tempFilePath = path.join(tempDirPath, namePrefix + '-' + formatSuffix);
-    } while (RootFS.existsSync(tempFilePath));
+    } while (existsSync(tempFilePath));
     return tempFilePath;
 }

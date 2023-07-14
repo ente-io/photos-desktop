@@ -6,7 +6,7 @@ import { logErrorSentry } from './sentry';
 import { generateTempFilePath, getTempDirPath } from '../utils/temp';
 import { existsSync } from 'fs';
 import { promiseWithTimeout } from '../utils/common';
-import { RootFS, RootPromiseFS } from './fs';
+import { readFile, rmSync, writeFile } from './sanitizedFS';
 
 const execAsync = util.promisify(require('child_process').exec);
 
@@ -62,14 +62,14 @@ export async function runFFmpegCmd(
             'ms'
         );
 
-        const outputFile = await RootPromiseFS.readFile(tempOutputFilePath);
+        const outputFile = (await readFile(tempOutputFilePath)) as Buffer;
         return new Uint8Array(outputFile);
     } catch (e) {
         logErrorSentry(e, 'ffmpeg run command error');
         throw e;
     } finally {
         try {
-            RootFS.rmSync(tempOutputFilePath, { force: true });
+            rmSync(tempOutputFilePath, { force: true });
         } catch (e) {
             logErrorSentry(e, 'failed to remove tempOutputFile');
         }
@@ -78,7 +78,7 @@ export async function runFFmpegCmd(
 
 export async function writeTempFile(fileStream: Uint8Array, fileName: string) {
     const tempFilePath = await generateTempFilePath(fileName);
-    await RootPromiseFS.writeFile(tempFilePath, fileStream);
+    await writeFile(tempFilePath, fileStream);
     return tempFilePath;
 }
 
@@ -90,5 +90,5 @@ export async function deleteTempFile(tempFilePath: string) {
             'tried to delete a non temp file'
         );
     }
-    RootFS.rmSync(tempFilePath, { force: true });
+    rmSync(tempFilePath, { force: true });
 }

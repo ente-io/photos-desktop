@@ -8,7 +8,7 @@ import { isDev } from '../utils/common';
 import path from 'path';
 import log from 'electron-log';
 import { CustomErrors } from '../constants/errors';
-import { RootFS, RootPromiseFS } from './fs';
+import { existsSync, readFile, rmSync, writeFile } from './sanitizedFS';
 const shellescape = require('any-shell-escape');
 
 const asyncExec = util.promisify(exec);
@@ -86,15 +86,15 @@ export async function convertToJPEG(
         tempInputFilePath = await generateTempFilePath(filename);
         tempOutputFilePath = await generateTempFilePath('output.jpeg');
 
-        await RootPromiseFS.writeFile(tempInputFilePath, fileData);
+        await writeFile(tempInputFilePath, fileData);
 
         await runConvertCommand(tempInputFilePath, tempOutputFilePath);
 
-        if (!RootFS.existsSync(tempOutputFilePath)) {
+        if (!existsSync(tempOutputFilePath)) {
             throw new Error('heic convert output file not found');
         }
         const convertedFileData = new Uint8Array(
-            await RootPromiseFS.readFile(tempOutputFilePath)
+            (await readFile(tempOutputFilePath)) as Buffer
         );
         return convertedFileData;
     } catch (e) {
@@ -181,11 +181,11 @@ export async function generateImageThumbnail(
                 quality
             );
 
-            if (!RootFS.existsSync(tempOutputFilePath)) {
+            if (!existsSync(tempOutputFilePath)) {
                 throw new Error('output thumbnail file not found');
             }
             thumbnail = new Uint8Array(
-                await RootPromiseFS.readFile(tempOutputFilePath)
+                (await readFile(tempOutputFilePath)) as Buffer
             );
             quality -= 10;
         } while (thumbnail.length > maxSize && quality > MIN_QUALITY);
@@ -195,7 +195,7 @@ export async function generateImageThumbnail(
         throw e;
     } finally {
         try {
-            RootFS.rmSync(tempOutputFilePath, { force: true });
+            rmSync(tempOutputFilePath, { force: true });
         } catch (e) {
             logErrorSentry(e, 'failed to remove tempOutputFile');
         }

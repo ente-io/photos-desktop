@@ -7,9 +7,6 @@ import { logError } from './logging';
 import * as FS from 'fs';
 import * as PromiseFS from 'fs/promises';
 
-export * as RootFS from 'fs';
-export * as RootPromiseFS from 'fs/promises';
-
 // https://stackoverflow.com/a/63111390
 export const getDirFilePaths = async (dirPath: string) => {
     if (!(await PromiseFS.stat(dirPath)).isDirectory()) {

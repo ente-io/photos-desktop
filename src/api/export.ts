@@ -1,13 +1,13 @@
+import { existsSync, mkdir, writeFile } from '../services/sanitizedFS';
 import { writeStream } from './../services/fs';
-import { RootFS, RootPromiseFS } from '../services/fs';
 
 export const exists = (path: string) => {
-    return RootFS.existsSync(path);
+    return existsSync(path);
 };
 
 export const checkExistsAndCreateDir = async (dirPath: string) => {
-    if (!RootFS.existsSync(dirPath)) {
-        await RootPromiseFS.mkdir(dirPath);
+    if (!existsSync(dirPath)) {
+        await mkdir(dirPath);
     }
 };
 
@@ -19,5 +19,5 @@ export const saveStreamToDisk = async (
 };
 
 export const saveFileToDisk = async (path: string, fileData: string) => {
-    await RootPromiseFS.writeFile(path, fileData);
+    await writeFile(path, fileData);
 };
