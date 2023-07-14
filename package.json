@@ -81,7 +81,6 @@
         "@types/get-folder-size": "^2.0.0",
         "@types/node": "18.15.0",
         "@types/node-fetch": "^2.6.2",
-        "@types/promise-fs": "^2.1.1",
         "@types/semver-compare": "^1.0.1",
         "@typescript-eslint/eslint-plugin": "^5.28.0",
         "@typescript-eslint/parser": "^5.28.0",
@@ -113,7 +112,6 @@
         "next-electron-server": "file:./thirdparty/next-electron-server",
         "node-fetch": "^2.6.7",
         "node-stream-zip": "^1.15.0",
-        "promise-fs": "^2.1.1",
         "semver-compare": "^1.0.0"
     },
     "standard": {

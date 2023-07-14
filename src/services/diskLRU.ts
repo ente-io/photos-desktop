@@ -1,8 +1,7 @@
 import path from 'path';
-import { readdir, stat, unlink } from 'promise-fs';
 import getFolderSize from 'get-folder-size';
-import { utimes, close, open } from 'promise-fs';
 import { logError } from '../services/logging';
+import { RootPromiseFS } from './fs';
 
 export interface LeastRecentlyUsedResult {
     atime: Date;
@@ -16,11 +15,12 @@ class DiskLRUService {
     async touch(path: string) {
         try {
             const time = new Date();
-            await utimes(path, time, time);
+            await RootPromiseFS.utimes(path, time, time);
         } catch (err) {
             logError(err, 'utimes method touch failed');
             try {
-                await close(await open(path, 'w'));
+                const fileHandler = await RootPromiseFS.open(path, 'w');
+                await fileHandler.close();
             } catch (e) {
                 logError(e, 'open-close method touch failed');
             }
@@ -54,7 +54,7 @@ class DiskLRUService {
                         const leastRecentlyUsed =
                             await this.findLeastRecentlyUsed(cacheDir);
 
-                        await unlink(leastRecentlyUsed.path);
+                        await RootPromiseFS.unlink(leastRecentlyUsed.path);
                         this.evictLeastRecentlyUsed(cacheDir, maxSize);
                     }
                     resolve(null);
@@ -71,14 +71,14 @@ class DiskLRUService {
     ): Promise<LeastRecentlyUsedResult> {
         result = result || { atime: new Date(), path: '' };
 
-        const files = await readdir(dir);
+        const files = await RootPromiseFS.readdir(dir);
         for (const file of files) {
             const newBase = path.join(dir, file);
-            const stats = await stat(newBase);
+            const stats = await RootPromiseFS.stat(newBase);
             if (stats.isDirectory()) {
                 result = await this.findLeastRecentlyUsed(newBase, result);
             } else {
-                const { atime } = await stat(newBase);
+                const { atime } = await RootPromiseFS.stat(newBase);
 
                 if (atime.getTime() < result.atime.getTime()) {
                     result = {

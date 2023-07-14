@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron/renderer';
 import path from 'path';
-import { existsSync, mkdir, rmSync } from 'promise-fs';
+import { RootFS, RootPromiseFS } from '../services/fs';
 import { DiskCache } from '../services/diskCache';
 
 const CACHE_DIR = 'ente';
@@ -18,16 +18,16 @@ const getCacheBucketDir = async (cacheName: string) => {
 
 export async function openDiskCache(cacheName: string) {
     const cacheBucketDir = await getCacheBucketDir(cacheName);
-    if (!existsSync(cacheBucketDir)) {
-        await mkdir(cacheBucketDir, { recursive: true });
+    if (!RootFS.existsSync(cacheBucketDir)) {
+        await RootPromiseFS.mkdir(cacheBucketDir, { recursive: true });
     }
     return new DiskCache(cacheBucketDir);
 }
 
 export async function deleteDiskCache(cacheName: string) {
     const cacheBucketDir = await getCacheBucketDir(cacheName);
-    if (existsSync(cacheBucketDir)) {
-        rmSync(cacheBucketDir, { recursive: true, force: true });
+    if (RootFS.existsSync(cacheBucketDir)) {
+        RootFS.rmSync(cacheBucketDir, { recursive: true, force: true });
         return true;
     } else {
         return false;

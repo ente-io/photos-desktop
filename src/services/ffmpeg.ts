@@ -2,11 +2,11 @@ import pathToFfmpeg from 'ffmpeg-static';
 const shellescape = require('any-shell-escape');
 import util from 'util';
 import log from 'electron-log';
-import { readFile, rmSync, writeFile } from 'promise-fs';
 import { logErrorSentry } from './sentry';
 import { generateTempFilePath, getTempDirPath } from '../utils/temp';
 import { existsSync } from 'fs';
 import { promiseWithTimeout } from '../utils/common';
+import { RootFS, RootPromiseFS } from './fs';
 
 const execAsync = util.promisify(require('child_process').exec);
 
@@ -62,14 +62,14 @@ export async function runFFmpegCmd(
             'ms'
         );
 
-        const outputFile = await readFile(tempOutputFilePath);
+        const outputFile = await RootPromiseFS.readFile(tempOutputFilePath);
         return new Uint8Array(outputFile);
     } catch (e) {
         logErrorSentry(e, 'ffmpeg run command error');
         throw e;
     } finally {
         try {
-            rmSync(tempOutputFilePath, { force: true });
+            RootFS.rmSync(tempOutputFilePath, { force: true });
         } catch (e) {
             logErrorSentry(e, 'failed to remove tempOutputFile');
         }
@@ -78,7 +78,7 @@ export async function runFFmpegCmd(
 
 export async function writeTempFile(fileStream: Uint8Array, fileName: string) {
     const tempFilePath = await generateTempFilePath(fileName);
-    await writeFile(tempFilePath, fileStream);
+    await RootPromiseFS.writeFile(tempFilePath, fileStream);
     return tempFilePath;
 }
 
@@ -90,5 +90,5 @@ export async function deleteTempFile(tempFilePath: string) {
             'tried to delete a non temp file'
         );
     }
-    rmSync(tempFilePath, { force: true });
+    RootFS.rmSync(tempFilePath, { force: true });
 }

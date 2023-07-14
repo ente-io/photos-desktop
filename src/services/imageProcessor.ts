@@ -1,8 +1,6 @@
 import util from 'util';
 import { exec } from 'child_process';
 
-import { existsSync, rmSync } from 'fs';
-import { readFile, writeFile } from 'promise-fs';
 import { generateTempFilePath } from '../utils/temp';
 import { logErrorSentry } from './sentry';
 import { isPlatform } from '../utils/common/platform';
@@ -10,6 +8,7 @@ import { isDev } from '../utils/common';
 import path from 'path';
 import log from 'electron-log';
 import { CustomErrors } from '../constants/errors';
+import { RootFS, RootPromiseFS } from './fs';
 const shellescape = require('any-shell-escape');
 
 const asyncExec = util.promisify(exec);
@@ -87,15 +86,15 @@ export async function convertToJPEG(
         tempInputFilePath = await generateTempFilePath(filename);
         tempOutputFilePath = await generateTempFilePath('output.jpeg');
 
-        await writeFile(tempInputFilePath, fileData);
+        await RootPromiseFS.writeFile(tempInputFilePath, fileData);
 
         await runConvertCommand(tempInputFilePath, tempOutputFilePath);
 
-        if (!existsSync(tempOutputFilePath)) {
+        if (!RootFS.existsSync(tempOutputFilePath)) {
             throw new Error('heic convert output file not found');
         }
         const convertedFileData = new Uint8Array(
-            await readFile(tempOutputFilePath)
+            await RootPromiseFS.readFile(tempOutputFilePath)
         );
         return convertedFileData;
     } catch (e) {
@@ -182,10 +181,12 @@ export async function generateImageThumbnail(
                 quality
             );
 
-            if (!existsSync(tempOutputFilePath)) {
+            if (!RootFS.existsSync(tempOutputFilePath)) {
                 throw new Error('output thumbnail file not found');
             }
-            thumbnail = new Uint8Array(await readFile(tempOutputFilePath));
+            thumbnail = new Uint8Array(
+                await RootPromiseFS.readFile(tempOutputFilePath)
+            );
             quality -= 10;
         } while (thumbnail.length > maxSize && quality > MIN_QUALITY);
         return thumbnail;
@@ -194,7 +195,7 @@ export async function generateImageThumbnail(
         throw e;
     } finally {
         try {
-            rmSync(tempOutputFilePath, { force: true });
+            RootFS.rmSync(tempOutputFilePath, { force: true });
         } catch (e) {
             logErrorSentry(e, 'failed to remove tempOutputFile');
         }

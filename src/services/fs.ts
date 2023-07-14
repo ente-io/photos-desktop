@@ -1,87 +1,93 @@
 import { FILE_STREAM_CHUNK_SIZE } from '../config';
 import path from 'path';
-import * as fs from 'promise-fs';
 import { ElectronFile } from '../types';
 import StreamZip from 'node-stream-zip';
 import { Readable } from 'stream';
 import { logError } from './logging';
-import { existsSync } from 'fs';
+import * as FS from 'fs';
+import * as PromiseFS from 'fs/promises';
+
+export * as RootFS from 'fs';
+export * as RootPromiseFS from 'fs/promises';
 
 // https://stackoverflow.com/a/63111390
 export const getDirFilePaths = async (dirPath: string) => {
-    if (!(await fs.stat(dirPath)).isDirectory()) {
+    if (!(await PromiseFS.stat(dirPath)).isDirectory()) {
         return [dirPath];
     }
 
-    let files: string[] = [];
-    const filePaths = await fs.readdir(dirPath);
+    let filePaths: string[] = [];
+    const fileDirents = await PromiseFS.readdir(dirPath, {
+        withFileTypes: true,
+    });
 
-    for (const filePath of filePaths) {
-        const absolute = path.join(dirPath, filePath);
-        files = [...files, ...(await getDirFilePaths(absolute))];
+    for (const fileDirent of fileDirents) {
+        const absolute = path.join(dirPath, fileDirent.name);
+        filePaths = [...filePaths, ...(await getDirFilePaths(absolute))];
     }
 
-    return files;
+    return filePaths;
 };
 
 export const getFileStream = async (filePath: string) => {
-    const file = await fs.open(filePath, 'r');
+    const file = await PromiseFS.open(filePath, 'r');
     let offset = 0;
     const readableStream = new ReadableStream<Uint8Array>({
         async pull(controller) {
             try {
                 const buff = new Uint8Array(FILE_STREAM_CHUNK_SIZE);
                 // original types were not working correctly
-                const bytesRead = (await fs.read(
-                    file,
+                const { bytesRead } = await file.read(
                     buff,
-                    0,
-                    FILE_STREAM_CHUNK_SIZE,
-                    offset
-                )) as unknown as number;
+                    offset,
+                    FILE_STREAM_CHUNK_SIZE
+                );
                 offset += bytesRead;
                 if (bytesRead === 0) {
                     controller.close();
-                    await fs.close(file);
+                    await file.close();
                 } else {
                     controller.enqueue(buff.slice(0, bytesRead));
                 }
             } catch (e) {
-                await fs.close(file);
+                await file.close();
             }
         },
         async cancel() {
-            await fs.close(file);
+            await file.close();
         },
     });
     return readableStream;
 };
 
 export async function getElectronFile(filePath: string): Promise<ElectronFile> {
-    const fileStats = await fs.stat(filePath);
+    const fileStats = (await PromiseFS.stat(filePath, {
+        bigint: false,
+    })) as FS.Stats;
+
     return {
         path: filePath.split(path.sep).join(path.posix.sep),
         name: path.basename(filePath),
         size: fileStats.size,
         lastModified: fileStats.mtime.valueOf(),
         stream: async () => {
-            if (!existsSync(filePath)) {
+            if (!FS.existsSync(filePath)) {
                 throw new Error('electronFile does not exist');
             }
             return await getFileStream(filePath);
         },
         blob: async () => {
-            if (!existsSync(filePath)) {
+            if (!FS.existsSync(filePath)) {
                 throw new Error('electronFile does not exist');
             }
-            const blob = await fs.readFile(filePath);
+            const blob = await PromiseFS.readFile(filePath);
             return new Blob([new Uint8Array(blob)]);
         },
         arrayBuffer: async () => {
-            if (!existsSync(filePath)) {
+            if (!FS.existsSync(filePath)) {
                 throw new Error('electronFile does not exist');
             }
-            const blob = await fs.readFile(filePath);
+            const blob = await PromiseFS.readFile(filePath);
             return new Uint8Array(blob);
         },
     };
@@ -93,7 +99,7 @@ export const getValidPaths = (paths: string[]) => {
     }
     return paths.filter(async (path) => {
         try {
-            await fs.stat(path).then((stat) => stat.isFile());
+            await PromiseFS.stat(path).then((stat) => stat.isFile());
         } catch (e) {
             return false;
         }
@@ -185,7 +191,7 @@ export const getZipFileStream = async (
 
 export async function isFolder(dirPath: string) {
     try {
-        const stats = await fs.stat(dirPath);
+        const stats = await PromiseFS.stat(dirPath);
         return stats.isDirectory();
     } catch (e) {
         let err = e;
@@ -226,7 +232,8 @@ export async function writeStream(
     filePath: string,
     fileStream: ReadableStream<Uint8Array>
 ) {
-    const writeable = fs.createWriteStream(filePath);
+    const fileHandle = await PromiseFS.open(filePath, 'w');
+    const writeable = fileHandle.createWriteStream();
     const readable = convertBrowserStreamToNode(fileStream);
     readable.pipe(writeable);
     await new Promise((resolve, reject) => {
@@ -236,45 +243,45 @@ export async function writeStream(
 }
 
 export async function readTextFile(filePath: string) {
-    if (!existsSync(filePath)) {
+    if (!FS.existsSync(filePath)) {
         throw new Error('File does not exist');
     }
-    return await fs.readFile(filePath, 'utf-8');
+    return await PromiseFS.readFile(filePath, 'utf-8');
 }
 
 export async function moveFile(
     sourcePath: string,
     destinationPath: string
 ): Promise<void> {
-    if (!existsSync(sourcePath)) {
+    if (!FS.existsSync(sourcePath)) {
         throw new Error('File does not exist');
     }
-    if (existsSync(destinationPath)) {
+    if (FS.existsSync(destinationPath)) {
         throw new Error('Destination file already exists');
     }
     // check if destination folder exists
     const destinationFolder = path.dirname(destinationPath);
-    if (!existsSync(destinationFolder)) {
-        await fs.mkdir(destinationFolder, { recursive: true });
+    if (!FS.existsSync(destinationFolder)) {
+        await PromiseFS.mkdir(destinationFolder, { recursive: true });
     }
-    await fs.rename(sourcePath, destinationPath);
+    await PromiseFS.rename(sourcePath, destinationPath);
 }
 
 export async function deleteFolder(folderPath: string): Promise<void> {
-    if (!existsSync(folderPath)) {
+    if (!FS.existsSync(folderPath)) {
         return;
     }
     // check if folder is empty
-    const files = await fs.readdir(folderPath);
+    const files = await PromiseFS.readdir(folderPath);
     if (files.length > 0) {
         throw new Error('Folder is not empty');
     }
-    await fs.rmdir(folderPath);
+    await PromiseFS.rmdir(folderPath);
 }
 
 export async function rename(oldPath: string, newPath: string) {
-    if (!existsSync(oldPath)) {
+    if (!FS.existsSync(oldPath)) {
         throw new Error('Path does not exist');
     }
-    await fs.rename(oldPath, newPath);
+    await PromiseFS.rename(oldPath, newPath);
 }

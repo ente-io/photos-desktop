@@ -1,6 +1,6 @@
 import DiskLRUService from '../services/diskLRU';
 import crypto from 'crypto';
-import { existsSync, readFile, writeFile, unlink } from 'promise-fs';
+import { RootFS, RootPromiseFS } from '../services/fs';
 import path from 'path';
 import { LimitedCache } from '../types/cache';
 
@@ -11,7 +11,7 @@ export class DiskCache implements LimitedCache {
 
     async put(cacheKey: string, response: Response): Promise<void> {
         const cachePath = getAssetCachePath(this.cacheBucketDir, cacheKey);
-        await writeFile(
+        await RootPromiseFS.writeFile(
             cachePath,
             new Uint8Array(await response.arrayBuffer())
         );
@@ -23,17 +23,17 @@ export class DiskCache implements LimitedCache {
 
     async match(cacheKey: string): Promise<Response> {
         const cachePath = getAssetCachePath(this.cacheBucketDir, cacheKey);
-        if (existsSync(cachePath)) {
+        if (RootFS.existsSync(cachePath)) {
             DiskLRUService.touch(cachePath);
-            return new Response(await readFile(cachePath));
+            return new Response(await RootPromiseFS.readFile(cachePath));
         } else {
             return undefined;
         }
     }
     async delete(cacheKey: string): Promise<boolean> {
         const cachePath = getAssetCachePath(this.cacheBucketDir, cacheKey);
-        if (existsSync(cachePath)) {
-            await unlink(cachePath);
+        if (RootFS.existsSync(cachePath)) {
+            await RootPromiseFS.unlink(cachePath);
             return true;
         } else {
             return false;

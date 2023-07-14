@@ -3,7 +3,6 @@ import { nativeImage, Tray, app, BrowserWindow, Menu } from 'electron';
 import electronReload from 'electron-reload';
 import serveNextAt from 'next-electron-server';
 import path from 'path';
-import { existsSync } from 'promise-fs';
 import { isDev } from './common';
 import { buildContextMenu, buildMenuBar } from './menu';
 import autoLauncher from '../services/autoLauncher';
@@ -12,6 +11,7 @@ import { setupAutoUpdater } from '../services/appUpdater';
 import ElectronLog from 'electron-log';
 import os from 'os';
 import { isPlatform } from './common/platform';
+import { RootFS } from '../services/fs';
 
 export function handleUpdates(mainWindow: BrowserWindow) {
     if (!isDev) {
@@ -46,7 +46,7 @@ export function getUniqueSavePath(filename: string, directory: string): string {
     const { name: filenameWithoutExtension, ext: extension } =
         path.parse(filename);
     let n = 0;
-    while (existsSync(uniqueFileSavePath)) {
+    while (RootFS.existsSync(uniqueFileSavePath)) {
         n++;
         // filter need to remove undefined extension from the array
         // else [`${fileName}`, undefined].join(".") will lead to `${fileName}.` as joined string
