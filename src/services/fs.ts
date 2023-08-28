@@ -275,16 +275,19 @@ export async function moveFile(
     await fs.rename(sourcePath, destinationPath);
 }
 
-export async function deleteFolder(folderPath: string): Promise<void> {
+export async function deleteFolder(
+    folderPath: string,
+    deleteFiles: boolean = false
+): Promise<void> {
     if (!existsSync(folderPath)) {
         return;
     }
     // check if folder is empty
     const files = await fs.readdir(folderPath);
-    if (files.length > 0) {
+    if (files.length > 0 && !deleteFiles) {
         throw new Error('Folder is not empty');
     }
-    await fs.rmdir(folderPath);
+    fs.rmSync(folderPath, { recursive: deleteFiles, force: true });
 }
 
 export async function rename(oldPath: string, newPath: string) {
