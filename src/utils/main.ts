@@ -104,8 +104,9 @@ export function enableSharedArrayBufferSupport() {
 export function logSystemInfo() {
     const systemVersion = process.getSystemVersion();
     const osName = process.platform;
+    const arch = process.arch;
     const osRelease = os.release();
-    ElectronLog.info({ osName, osRelease, systemVersion });
+    ElectronLog.info({ osName, osRelease, systemVersion, arch });
     const appVersion = app.getVersion();
     ElectronLog.info({ appVersion });
 }

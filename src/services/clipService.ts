@@ -128,9 +128,21 @@ export async function getClipTextModelPath() {
 }
 
 function getGGMLClipPath() {
+    const platform = getPlatform();
+    const arch = process.arch;
+    let binaryName;
+    if (platform === 'mac') {
+        if (arch === 'x64') {
+            binaryName = `ggmlclip-mac-x64`;
+        } else {
+            binaryName = `ggmlclip-mac-arm64`;
+        }
+    } else {
+        binaryName = `ggmlclip-${platform}`;
+    }
     return isDev
-        ? path.join('./build', `ggmlclip-${getPlatform()}`)
-        : path.join(process.resourcesPath, `ggmlclip-${getPlatform()}`);
+        ? path.join('./build', binaryName)
+        : path.join(process.resourcesPath, binaryName);
 }
 
 export async function computeImageEmbedding(
