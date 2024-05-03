@@ -1,8 +1,14 @@
-# Notice - This code has moved to https://github.com/ente-io/ente
+# Ente Photos Desktop Releases
 
-We've consolidated our code into a single repository as part of open sourcing
-our server. You can read more about it
-[here](https://ente.io/blog/open-sourcing-our-server/).
+This repository contains
+[downloads](https://github.com/ente-io/photos-desktop/releases/latest) for the
+Ente Photos desktop app.
 
-Please open new issues and feature requests in the new repository:
-[ente-io/ente](https://github.com/ente-io/ente)
+You can also download from our website - **[ente.io/download](https://ente.io/download).**
+
+After you install the app, it will automatically check for updates, so you don't
+need to manually check anything.
+
+All source code for Ente, including this Ente Photos desktop app, is in
+[ente-io/ente](https://github.com/ente-io/ente). Please open any issues and
+feature requests there.
