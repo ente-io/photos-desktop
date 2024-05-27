@@ -95,8 +95,7 @@ jobs:
               env:
                   # macOS notarization credentials key details
                   APPLE_ID: ${{ secrets.APPLE_ID }}
-                  APPLE_APP_SPECIFIC_PASSWORD:
-                      ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+                  APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
                   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
                   USE_HARD_LINKS: false
 
@@ -111,6 +110,15 @@ jobs:
               env:
                   # Windows signing credentials
                   # https://www.electron.build/code-signing
-                  CSC_LINK: "windows-csc.pfx"
-                  CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
+                  # CSC_LINK: "windows-csc.pfx"
+                  # CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
                   USE_HARD_LINKS: false
+
+            - name: Code sign generated Windows installers
+              if: startsWith(matrix.os, 'windows')
+              steps:
+                  uses: dlemstra/code-sign-action@v1
+                  with:
+                      certificate: "${{ secrets.WINDOWS_CERTIFICATE }}"
+                      password: "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}"
+                      folder: "dist"
