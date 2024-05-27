@@ -116,9 +116,8 @@ jobs:
 
             - name: Code sign generated Windows installers
               if: startsWith(matrix.os, 'windows')
-              steps:
-                  uses: dlemstra/code-sign-action@v1
-                  with:
-                      certificate: "${{ secrets.WINDOWS_CERTIFICATE }}"
-                      password: "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}"
-                      folder: "dist"
+              uses: dlemstra/code-sign-action@v1
+              with:
+                  certificate: "${{ secrets.WINDOWS_CERTIFICATE }}"
+                  password: "${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}"
+                  folder: "dist"
