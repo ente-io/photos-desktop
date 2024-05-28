@@ -4,7 +4,8 @@ This repository contains
 [downloads](https://github.com/ente-io/photos-desktop/releases/latest) for the
 Ente Photos desktop app.
 
-You can also download from our website - **[ente.io/download](https://ente.io/download).**
+You can also download from our website -
+**[ente.io/download](https://ente.io/download).**
 
 After you install the app, it will automatically check for subsequent updates,
 and you don't need to manually check anything.
