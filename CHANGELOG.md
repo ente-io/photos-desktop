@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v1.7.3
+
+-   Face recognition and magic search (public beta).
+-   Support Polish translations.
+
 ## v1.7.2
 
 -   Significantly improve the speed of the metadata parsing step during imports
