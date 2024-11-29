@@ -1,9 +1,16 @@
 # CHANGELOG
 
+## v1.7.7
+
+-   Retain JPEG originals even on date modifications.
+-   Support Portuguese and Vietnamese translations.
+
 ## v1.7.6
 
+-   Face merging and suggestions (beta).
 -   Parse description from metadata JSON.
 -   Support Italian, Ukrainian and Lithuanian translations.
+-   Fix an out of memory crash on uploading large libraries.
 
 ## v1.7.5
 
