@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v1.7.11
+
+- Improved file viewer.
+- Improved live photo experience.
+
 ## v1.7.10
 
 - Speed up selection for large libraries.
