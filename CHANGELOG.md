@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.7.14
+
+- Increase file size limit to 10 GB.
+
 ## v1.7.13
 
 - Generate streams for videos (beta)
