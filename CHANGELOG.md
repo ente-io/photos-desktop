@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v1.7.17
+
+- Map view.
+- Manually tag people in photos.
+- Album admins can now remove photos added by collaborators.
+- Viewers and collaborators can see and copy public links.
+- Free users can now create public links (device limit of 5).
+
 ## v1.7.16
 
 - Support Greek translations.
