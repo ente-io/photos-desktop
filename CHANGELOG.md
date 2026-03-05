@@ -1,8 +1,7 @@
 # CHANGELOG
 
-## v1.7.20
+## v1.7.21
 
-- App lock
 - Masonry layout for public albums
 - Quick links
 - Full viewer experience for single-photo/video links
