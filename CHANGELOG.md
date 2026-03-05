@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v1.7.19
+
+- App lock
+- Masonry layout for public albums
+- Quick links
+- Full viewer experience for single-photo/video links
+- Update album cover
+- Public album improvements
+- Catalan language support
+
 ## v1.7.18
 
 - Hide shared albums
